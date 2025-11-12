@@ -1,0 +1,175 @@
+# 🚀 Post Genius — AI-Powered Social Media Assistant
+
+**Post Genius** is a full-stack AI-powered web application that helps creators, marketers, and businesses automate social media content creation and posting. Generate captivating captions and stunning visuals using OpenAI's GPT-4 and DALL·E (formerly Replicate), and post directly to Facebook and Instagram through secure OAuth integration.
+
+---
+
+## 🔑 Features
+
+- ✍️ **AI Caption Generator**  
+  Generate social media captions using GPT-4 based on user prompts.
+
+- 🖼️ **AI Image Generator**  
+  Create stunning visuals using DALL·E 3 via OpenAI API.
+
+- 📈 **Engagement Prediction**  
+  Predict likes and shares using basic NLP (TextBlob) on the generated content.
+
+- 📋 **Dashboard**  
+  View and manage all previously generated captions and images.
+
+- 📤 **CSV Export**  
+  Export your caption and image history to CSV for reports or reuse.
+
+- 👤 **User Profiles**  
+  Each user has a profile with avatar and bio — editable via the dashboard.
+
+- 🔐 **Authentication**  
+  Sign up, log in, log out with Django's secure user system.
+
+- 🔗 **Social Media OAuth**  
+  Facebook and Instagram login via Meta Graph API with long-lived tokens.
+
+- 🌙 **Light/Dark Mode Toggle**  
+  Simple client-side theme switcher.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer       | Technology                                 |
+|-------------|---------------------------------------------|
+| Frontend    | HTML, CSS, JavaScript                      |
+| Backend     | Django (Python)                            |
+| AI APIs     | OpenAI GPT-4 & DALL·E                      |
+| NLP         | TextBlob                                   |
+| Media       | Pillow, Django FileSystem                  |
+| Auth        | Facebook Graph API (OAuth)                 |
+| Database    | SQLite (easy to migrate to PostgreSQL)     |
+| Deployment  | Render, Railway, Heroku, VPS               |
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone the Repo
+
+```bash
+git clone https://github.com/yourusername/post-genius.git
+cd post-genius
+```
+
+### 2. Create Virtual Environment
+
+```bash
+python -m venv env
+source env/bin/activate  # On Windows: env\Scripts\activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Create `.env` File
+
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+OPENAI_API_KEY=your-openai-key
+FB_APP_ID=your-facebook-app-id
+FB_APP_SECRET=your-facebook-app-secret
+FB_REDIRECT_URI=http://localhost:8000/facebook/callback/
+```
+
+### 5. Run Migrations & Start Server
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+```
+
+---
+
+## 🖼️ Media Handling
+
+* Avatars and profile images are uploaded to `media/avatars/`
+* During development, media files are served via `settings.MEDIA_URL`
+
+---
+
+## 📁 Project Structure
+
+```
+post-genius/
+├── generator/          # Main Django project
+├── post/               # App (views, models, urls, etc.)
+├── templates/          # HTML pages
+├── static/             # JS, CSS, images
+├── media/              # Uploaded user files
+├── .env.example
+├── requirements.txt
+└── manage.py
+```
+
+---
+
+## 🧪 Example `.env.example`
+
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+OPENAI_API_KEY=your-openai-key
+FB_APP_ID=your-facebook-app-id
+FB_APP_SECRET=your-facebook-app-secret
+FB_REDIRECT_URI=http://localhost:8000/facebook/callback/
+```
+
+---
+
+## 🌐 Deployment
+
+* Use **Render**, **Railway**, or **Heroku**
+* Add your `SECRET_KEY` and API keys in environment variables
+* Use Gunicorn + `Procfile`:
+
+```
+web: gunicorn generator.wsgi
+```
+
+---
+
+## 📦 Example Prompts
+
+- **Caption Prompt:** "New Year Sale 50% Off"
+- **Image Prompt:** "A robot dancing under neon lights"
+
+---
+
+## 🔒 Security
+
+- API keys are loaded from `.env` (not hardcoded)
+- Facebook access tokens are encrypted and stored per user
+- Tokens expire automatically after 60 days (long-lived)
+
+---
+
+## 📄 Documentation
+
+📘 Full setup guide and walkthrough available in:
+- `Post_Genius_Documentation.docx`
+- Privacy Policy: `/privacy-policy/`
+- Terms of Use: (optional)
+
+---
+
+## 🙌 Acknowledgements
+
+- [OpenAI](https://openai.com/)
+- [TextBlob](https://textblob.readthedocs.io/)
+- [Django](https://www.djangoproject.com/)
+- [Meta Graph API](https://developers.facebook.com/)
+
+---
