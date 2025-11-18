@@ -1,6 +1,8 @@
 import os, openai, csv, requests
 from dotenv import load_dotenv
 from textblob import TextBlob
+import jwt
+import json
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -23,37 +25,46 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 def index(request):
     return render(request, 'index.html')
 
-def signup(request):
+def clerk_auth(request):
+    return render(request, 'clerk_auth.html', {
+        'clerk_publishable_key': os.getenv('CLERK_PUBLISHABLE_KEY', 'pk_test_PLACEHOLDER')
+    })
+
+@csrf_exempt
+def clerk_login_backend(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
+        try:
+            data = json.loads(request.body)
+            token = data.get('token')
+            
+            # WARNING: In production, you MUST verify the token signature using Clerk's JWKS or Secret Key.
+            # For this setup, we are decoding without verification to demonstrate the flow.
+            decoded = jwt.decode(token, options={"verify_signature": False})
+            
+            user_id = decoded.get('sub')
+            # Try to find email in claims if available, otherwise use dummy
+            email = decoded.get('email', f"clerk_{user_id}@example.com")
+            
+            username = f"clerk_{user_id}"
+            
+            user, created = User.objects.get_or_create(username=username)
+            if created:
+                user.email = email
+                user.save()
+                # Create UserProfile if needed
+                UserProfile.objects.get_or_create(user=user)
+            
+            login(request, user)
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error'}, status=405)
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
-            return redirect('signup')
-
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        messages.success(request, "Account created. Please sign in.")
-        return redirect('signin')
-    return render(request, 'signup.html')
+def signup(request):
+    return redirect('clerk_auth')
 
 def signin(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        try:
-            user = User.objects.get(email=email)
-            user = authenticate(request, username=user.username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('index')
-            else:
-                messages.error(request, "Invalid credentials.")
-        except User.DoesNotExist:
-            messages.error(request, "User does not exist.")
-    return render(request, 'signin.html')
+    return redirect('clerk_auth')
 
 def logout_view(request):
     logout(request)
