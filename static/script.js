@@ -120,23 +120,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 4️⃣ Theme Toggle with LocalStorage
-  const themeToggle = document.createElement('button');
-  themeToggle.textContent = '🌓 Toggle Theme';
-  themeToggle.className = 'btn btn-outline';
-  themeToggle.style.position = 'fixed';
-  themeToggle.style.top = '10px';
-  themeToggle.style.right = '10px';
-  themeToggle.style.zIndex = 9999;
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    if (themeToggleBtn) {
+        themeToggleBtn.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+  }
 
-  document.body.appendChild(themeToggle);
-
-  themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('light-mode');
-    localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
-  });
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+    });
+  }
 
   // Load saved theme on reload
-  if (localStorage.getItem('theme') === 'light') {
-    document.body.classList.add('light-mode');
-  }
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  setTheme(savedTheme);
 });

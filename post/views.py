@@ -23,6 +23,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def index(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     return render(request, 'index.html')
 
 def clerk_auth(request):
@@ -163,8 +165,9 @@ def export_images_csv(request):
 
 @login_required
 def profile_view(request):
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
-    return render(request, 'profile.html', {'profile': profile})
+    return render(request, 'profile.html', {
+        'clerk_publishable_key': os.getenv('CLERK_PUBLISHABLE_KEY')
+    })
 
 @login_required
 def edit_profile(request):
