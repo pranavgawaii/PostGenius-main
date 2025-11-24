@@ -42,7 +42,32 @@
   </div>
   <script>
     window.addEventListener("load", async function () {
-      await Clerk.load();
+      const publishableKey = "{{ clerk_publishable_key }}";
+      
+      if (!publishableKey || publishableKey === "pk_test_PLACEHOLDER") {
+        document.getElementById("auth-container").innerHTML = `
+            <div style="color: red; text-align: center; padding: 20px;">
+                <h3>Configuration Error</h3>
+                <p>Clerk Publishable Key is missing.</p>
+                <p>Please check your Vercel Environment Variables.</p>
+            </div>
+        `;
+        return;
+      }
+
+      try {
+          await Clerk.load();
+      } catch (err) {
+          console.error("Failed to load Clerk", err);
+          document.getElementById("auth-container").innerHTML = `
+            <div style="color: red; text-align: center; padding: 20px;">
+                <h3>Connection Error</h3>
+                <p>Failed to load Clerk authentication.</p>
+                <p>Check console for details.</p>
+            </div>
+        `;
+        return;
+      }
 
       if (Clerk.user) {
         // User is already signed in, sync with backend
