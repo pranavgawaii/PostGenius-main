@@ -68,9 +68,9 @@ export default function Home() {
       <main className="flex-1">
         <HeroSection
           badge={{
-            text: "New: AI Content Generation",
+            text: "New: Introducing PostGenius AI 2.0",
             action: {
-              text: "Learn more",
+              text: "See what's new",
               href: "#features",
             },
           }}

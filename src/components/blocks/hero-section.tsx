@@ -56,8 +56,8 @@ export function HeroSection({
                 <div className="flex flex-col items-center gap-6 text-center sm:gap-12">
                     {/* Badge */}
                     {badge && (
-                        <Badge variant="outline" className="animate-appear gap-2">
-                            <span className="text-muted-foreground">{badge.text}</span>
+                        <Badge variant="outline" className="animate-appear gap-2 px-4 py-1.5 text-sm rounded-full border-primary/20 bg-primary/5 backdrop-blur-sm transition-all hover:bg-primary/10 hover:border-primary/40">
+                            <span className="text-muted-foreground font-medium">{badge.text}</span>
                             <a href={badge.action.href} className="flex items-center gap-1">
                                 {badge.action.text}
                                 <ArrowRightIcon className="h-3 w-3" />
@@ -66,7 +66,7 @@ export function HeroSection({
                     )}
 
                     {/* Title */}
-                    <h1 className="relative z-10 inline-block animate-appear bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-5xl font-bold tracking-tight leading-tight text-transparent drop-shadow-2xl sm:text-7xl sm:leading-tight md:text-8xl md:leading-tight">
+                    <h1 className="relative z-10 inline-block animate-appear bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-4xl font-bold tracking-tight leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-7xl md:leading-tight">
                         {title}
                     </h1>
 
