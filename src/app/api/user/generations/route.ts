@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/lib/supabase";
 
+// ... imports
+
 export async function GET(req: Request) {
     try {
         const { userId: clerkUserId } = await auth();
@@ -33,7 +35,34 @@ export async function GET(req: Request) {
 
         if (error) throw error;
 
-        return NextResponse.json(data);
+        // Transform to new structure
+        const formattedData = data.map(item => ({
+            id: item.id,
+            url: item.blog_url,
+            title: item.blog_title || "Untitled",
+            created_at: item.created_at,
+            user_id: item.user_id,
+            captions: {
+                instagram: item.instagram_caption,
+                twitter: item.twitter_caption,
+                linkedin: item.linkedin_caption,
+                facebook: item.facebook_caption,
+                newsletter: item.newsletter_caption,
+                blog: item.blog_caption
+            },
+            metadata: {
+                total_captions: [
+                    item.instagram_caption,
+                    item.twitter_caption,
+                    item.linkedin_caption,
+                    item.facebook_caption,
+                    item.newsletter_caption,
+                    item.blog_caption
+                ].filter(Boolean).length
+            }
+        }));
+
+        return NextResponse.json(formattedData);
     } catch (error: any) {
         console.error("Generations fetch error:", error.message);
         return NextResponse.json({ error: "Failed to fetch generations" }, { status: 500 });
