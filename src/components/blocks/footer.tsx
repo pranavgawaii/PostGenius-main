@@ -56,11 +56,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
-                    <div>
-                        &copy; {new Date().getFullYear()} PostGenius. All rights reserved.
-                    </div>
-
+                <div className="pt-8 border-t border-border flex flex-col items-center gap-2 text-sm text-center">
                     <div className="text-muted-foreground">
                         Design & Developed by{' '}
                         <a
@@ -71,6 +67,10 @@ export function Footer() {
                         >
                             pranavgawai
                         </a>
+                    </div>
+
+                    <div>
+                        &copy; {new Date().getFullYear()} PostGenius. All rights reserved.
                     </div>
                 </div>
             </div>
