@@ -8,25 +8,34 @@ import { Navbar } from "@/components/blocks/navbar";
 export default function AppPage() {
     const [showResults, setShowResults] = useState(false);
     const [generatedData, setGeneratedData] = useState<any>(null);
+    const [url, setUrl] = useState("");
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleGenerate = async (url: string) => {
-        console.log("Generating for:", url);
+    const handleGenerate = async (submitUrl: string) => {
+        console.log("Generating for:", submitUrl);
         setGeneratedData(null);
-        setShowResults(true);
+        setShowResults(false);
+        setIsGenerating(true);
+        setError(null);
 
         try {
             const res = await fetch("/api/repurpose", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url }),
+                body: JSON.stringify({ url: submitUrl }),
             });
 
             if (!res.ok) throw new Error("Generation failed");
 
             const data = await res.json();
             setGeneratedData(data);
+            setShowResults(true);
         } catch (error) {
             console.error(error);
+            setError("Failed to generate posts. Please try again.");
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -38,7 +47,13 @@ export default function AppPage() {
                     {/* Header / Input Section */}
                     <div className="relative min-h-[500px] flex flex-col justify-center items-center rounded-3xl bg-gradient-to-b from-background to-muted/20 border border-border/50 overflow-hidden px-4">
                         <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
-                        <RepurposeInput onGenerate={handleGenerate} />
+                        <RepurposeInput
+                            onGenerate={handleGenerate}
+                            url={url}
+                            setUrl={setUrl}
+                            isGenerating={isGenerating}
+                            error={error}
+                        />
                     </div>
 
                     {/* Results Section */}
