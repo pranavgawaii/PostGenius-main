@@ -15,7 +15,7 @@ export function TestimonialsSection() {
             gradient: "from-blue-500/20 to-purple-500/20",
         },
         {
-            quote: "As a college student managing my startup's social media, postGENIUS has been a lifesaver. The AI-generated captions are spot-on and save me so much time!",
+            quote: "As a college student managing my startup's social media, PostGenius has been a lifesaver. The AI-generated captions are spot-on and save me so much time!",
             rating: 5,
             name: "Priya Mehta",
             role: "Student Entrepreneur",
@@ -33,7 +33,7 @@ export function TestimonialsSection() {
     ];
 
     return (
-        <section id="testimonials" className="py-24 sm:py-32 bg-background relative overflow-hidden">
+        <section id="testimonials" className="py-16 sm:py-32 bg-background relative overflow-hidden">
             {/* Background Decoration */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-7xl pointer-events-none">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-50" />
@@ -41,21 +41,21 @@ export function TestimonialsSection() {
             </div>
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="mx-auto max-w-2xl text-center mb-16">
+                <div className="mx-auto max-w-2xl text-center mb-12 md:mb-16">
                     <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                         Loved by Students & Creators
                     </h2>
-                    <p className="mt-4 text-lg text-muted-foreground">
-                        See what users are saying about postGENIUS
+                    <p className="mt-4 text-lg text-muted-foreground px-4 sm:px-0">
+                        See what users are saying about PostGenius
                     </p>
                 </div>
 
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
                     {testimonials.map((testimonial, index) => (
                         <ScrollReveal
                             key={index}
                             delay={index * 0.1}
-                            className="bg-card border border-border rounded-2xl p-8 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                            className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
                         >
                             {/* Stars */}
                             <div className="flex gap-1 mb-6">

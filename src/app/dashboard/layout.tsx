@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
-import { UpgradeNudge } from "@/components/dashboard/upgrade-nudge";
+
 
 export default function DashboardLayout({
     children,
@@ -12,7 +12,6 @@ export default function DashboardLayout({
             <AppSidebar />
             <div className="flex-1 md:ml-64 flex flex-col min-h-screen transition-all duration-300 ease-in-out">
                 <DashboardHeader />
-                <UpgradeNudge />
                 <main className="flex-1 p-6 md:p-8 overflow-y-auto">
                     {children}
                 </main>

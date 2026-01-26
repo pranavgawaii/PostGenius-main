@@ -21,14 +21,24 @@ interface GeneratedContent {
 export interface PlatformPreviewProps {
     visible: boolean;
     data?: {
-        linkedin?: string;
-        twitter?: string;
-        instagram?: string;
-        facebook?: string;
-        newsletter?: string;
-        blog?: string;
+        linkedin?: string | any;
+        twitter?: string | any;
+        instagram?: string | any;
+        facebook?: string | any;
+        newsletter?: string | any;
+        blog?: string | any;
     };
 }
+
+// Helper to safely extract string content
+const safeString = (content: any): string => {
+    if (!content) return "";
+    if (typeof content === "string") return content;
+    if (typeof content === "object") {
+        return content.text || content.content || content.caption || JSON.stringify(content);
+    }
+    return String(content);
+};
 
 export function PlatformPreview({ visible, data }: PlatformPreviewProps) {
     if (!visible) return null;
@@ -46,92 +56,75 @@ export function PlatformPreview({ visible, data }: PlatformPreviewProps) {
             className="w-full max-w-5xl mx-auto mt-12"
         >
             <Tabs defaultValue="linkedin" className="w-full">
-                <div className="flex justify-center mb-8">
-                    <TabsList className="grid w-full grid-cols-6 bg-muted/50 backdrop-blur-md p-1 rounded-2xl border border-primary/10">
-                        <TabsTrigger value="linkedin" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2">
-                            <Linkedin className="w-4 h-4" /> <span className="hidden lg:inline">LinkedIn</span>
+                <div className="flex justify-start md:justify-center mb-8 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                    <TabsList className="flex items-center w-max md:w-full md:grid md:grid-cols-6 bg-muted/50 backdrop-blur-md p-1 rounded-2xl border border-primary/10">
+                        <TabsTrigger value="linkedin" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2 whitespace-nowrap">
+                            <Linkedin className="w-4 h-4" /> <span className="inline lg:inline">LinkedIn</span>
                         </TabsTrigger>
-                        <TabsTrigger value="twitter" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2">
-                            <Twitter className="w-4 h-4" /> <span className="hidden lg:inline">Twitter</span>
+                        <TabsTrigger value="twitter" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2 whitespace-nowrap">
+                            <Twitter className="w-4 h-4" /> <span className="inline lg:inline">Twitter</span>
                         </TabsTrigger>
-                        <TabsTrigger value="instagram" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2">
-                            <Instagram className="w-4 h-4" /> <span className="hidden lg:inline">Instagram</span>
+                        <TabsTrigger value="instagram" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2 whitespace-nowrap">
+                            <Instagram className="w-4 h-4" /> <span className="inline lg:inline">Instagram</span>
                         </TabsTrigger>
-                        <TabsTrigger value="facebook" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2">
-                            <Facebook className="w-4 h-4" /> <span className="hidden lg:inline">Facebook</span>
+                        <TabsTrigger value="facebook" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2 whitespace-nowrap">
+                            <Facebook className="w-4 h-4" /> <span className="inline lg:inline">Facebook</span>
                         </TabsTrigger>
-                        <TabsTrigger value="newsletter" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2">
-                            <Mail className="w-4 h-4" /> <span className="hidden lg:inline">Newsletter</span>
+                        <TabsTrigger value="newsletter" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2 whitespace-nowrap">
+                            <Mail className="w-4 h-4" /> <span className="inline lg:inline">Letter</span>
                         </TabsTrigger>
-                        <TabsTrigger value="blog" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2">
-                            <BookOpen className="w-4 h-4" /> <span className="hidden lg:inline">Blog</span>
+                        <TabsTrigger value="blog" className="rounded-xl data-[state=active]:bg-background/80 flex items-center gap-2 whitespace-nowrap">
+                            <BookOpen className="w-4 h-4" /> <span className="inline lg:inline">Blog</span>
                         </TabsTrigger>
                     </TabsList>
                 </div>
 
-                {/* LinkedIn Tab */}
-                <TabsContent value="linkedin">
+                <TabsContent value="linkedin" className="mt-0">
                     <PreviewCard
                         title="LinkedIn Post"
-                        platform="linkedin"
-                        content={data?.linkedin || "Generating..."}
-                        component={<LinkedInPreview content={data?.linkedin || ""} />}
-                        onCopy={() => copyToClipboard(data?.linkedin || "")}
+                        content={safeString(data?.linkedin)}
+                        onCopy={() => copyToClipboard(safeString(data?.linkedin))}
+                        component={<LinkedInPreview content={safeString(data?.linkedin)} />}
                     />
                 </TabsContent>
-
-                {/* Twitter Tab */}
-                <TabsContent value="twitter">
+                <TabsContent value="twitter" className="mt-0">
                     <PreviewCard
-                        title="Twitter Thread"
-                        platform="twitter"
-                        content={data?.twitter || "Generating..."}
-                        component={<TwitterPreview content={data?.twitter || ""} />}
-                        onCopy={() => copyToClipboard(data?.twitter || "")}
+                        title="Twitter Thread / Post"
+                        content={safeString(data?.twitter)}
+                        onCopy={() => copyToClipboard(safeString(data?.twitter))}
+                        component={<TwitterPreview content={safeString(data?.twitter)} />}
                     />
                 </TabsContent>
-
-                {/* Instagram Tab */}
-                <TabsContent value="instagram">
+                <TabsContent value="instagram" className="mt-0">
                     <PreviewCard
                         title="Instagram Caption"
-                        platform="instagram"
-                        content={data?.instagram || "Generating..."}
-                        component={<InstagramPreview content={data?.instagram || ""} />}
-                        onCopy={() => copyToClipboard(data?.instagram || "")}
+                        content={safeString(data?.instagram)}
+                        onCopy={() => copyToClipboard(safeString(data?.instagram))}
+                        component={<InstagramPreview content={safeString(data?.instagram)} />}
                     />
                 </TabsContent>
-
-                {/* Facebook Tab */}
-                <TabsContent value="facebook">
+                <TabsContent value="facebook" className="mt-0">
                     <PreviewCard
                         title="Facebook Post"
-                        platform="facebook"
-                        content={data?.facebook || "Generating..."}
-                        component={<FacebookPreview content={data?.facebook || ""} />}
-                        onCopy={() => copyToClipboard(data?.facebook || "")}
+                        content={safeString(data?.facebook)}
+                        onCopy={() => copyToClipboard(safeString(data?.facebook))}
+                        component={<FacebookPreview content={safeString(data?.facebook)} />}
                     />
                 </TabsContent>
-
-                {/* Newsletter Tab */}
-                <TabsContent value="newsletter">
+                <TabsContent value="newsletter" className="mt-0">
                     <PreviewCard
-                        title="Newsletter Edition"
-                        platform="newsletter"
-                        content={data?.newsletter || "Generating..."}
-                        component={<NewsletterPreview content={data?.newsletter || ""} />}
-                        onCopy={() => copyToClipboard(data?.newsletter || "")}
+                        title="Email Newsletter"
+                        content={safeString(data?.newsletter)}
+                        onCopy={() => copyToClipboard(safeString(data?.newsletter))}
+                        component={<NewsletterPreview content={safeString(data?.newsletter)} />}
                     />
                 </TabsContent>
-
-                {/* Blog Tab */}
-                <TabsContent value="blog">
+                <TabsContent value="blog" className="mt-0">
                     <PreviewCard
-                        title="Blog Teaser"
-                        platform="blog"
-                        content={data?.blog || "Generating..."}
-                        component={<BlogPreview content={data?.blog || ""} />}
-                        onCopy={() => copyToClipboard(data?.blog || "")}
+                        title="Blog Post / Summary"
+                        content={safeString(data?.blog)}
+                        onCopy={() => copyToClipboard(safeString(data?.blog))}
+                        component={<BlogPreview content={safeString(data?.blog)} />}
                     />
                 </TabsContent>
             </Tabs>
@@ -140,30 +133,32 @@ export function PlatformPreview({ visible, data }: PlatformPreviewProps) {
 }
 
 function PreviewCard({ title, component, onCopy, content }: any) {
+    const wordCount = typeof content === 'string' ? content.split(' ').length : 0;
+
     return (
         <Card className="border-primary/10 shadow-2xl shadow-primary/5 bg-background/60 backdrop-blur-xl overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 bg-muted/20 px-6 py-4">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border/50 bg-muted/20 px-4 sm:px-6 py-4 gap-4">
                 <div className="space-y-0.5">
                     <CardTitle className="text-xl font-bold">{title}</CardTitle>
-                    <CardDescription>Optimized for engagement and viral reach.</CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">Optimized for engagement and viral reach.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={onCopy} className="gap-2 rounded-xl">
+                <Button variant="outline" size="sm" onClick={onCopy} className="gap-2 rounded-xl w-full sm:w-auto justify-center">
                     <Copy className="w-4 h-4" /> Copy Content
                 </Button>
             </CardHeader>
-            <CardContent className="p-8 md:p-12 bg-grid-white/5">
-                <div className="relative group">
+            <CardContent className="p-4 sm:p-8 md:p-12 bg-grid-white/5">
+                <div className="relative group overflow-x-auto">
                     <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-blue-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="relative">
                         {component}
                     </div>
                 </div>
             </CardContent>
-            <CardFooter className="justify-between border-t border-border/40 bg-muted/10 px-6 py-4">
-                <div className="text-xs text-muted-foreground font-medium">
-                    {content ? `${content.split(' ').length} words` : '0 words'} • AI Analyzed • High Quality
+            <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/40 bg-muted/10 px-4 sm:px-6 py-4">
+                <div className="text-[10px] sm:text-xs text-muted-foreground font-medium text-center sm:text-left">
+                    {wordCount} words • AI Analyzed • High Quality
                 </div>
-                <Button className="rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform px-6">
+                <Button className="w-full sm:w-auto rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform px-6">
                     Schedule Post
                 </Button>
             </CardFooter>

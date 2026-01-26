@@ -42,6 +42,8 @@ export async function GET(req: Request) {
             title: item.blog_title || "Untitled",
             created_at: item.created_at,
             user_id: item.user_id,
+            workflow: item.workflow || 'social_media', // Return workflow
+            output: item.output, // Return JSONB output
             captions: {
                 instagram: item.instagram_caption,
                 twitter: item.twitter_caption,
@@ -51,6 +53,7 @@ export async function GET(req: Request) {
                 blog: item.blog_caption
             },
             metadata: {
+                // ... legacy metadata
                 total_captions: [
                     item.instagram_caption,
                     item.twitter_caption,

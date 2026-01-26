@@ -48,7 +48,12 @@ export function HowItWorksSection() {
                         </div>
                     </div>
 
-                    <div className="grid gap-12 lg:grid-cols-3 lg:gap-8 relative z-10">
+                    {/* Connecting Line (Mobile) */}
+                    <div className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 lg:hidden py-10">
+                        <div className="h-full w-px border-l border-dashed border-muted-foreground/30" />
+                    </div>
+
+                    <div className="grid gap-16 lg:grid-cols-3 lg:gap-8 relative z-10">
                         {steps.map((step, index) => (
                             <ScrollReveal
                                 key={index}

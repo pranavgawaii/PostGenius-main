@@ -59,11 +59,11 @@ export function FeaturesSection() {
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="mb-16 md:mb-24 text-center max-w-3xl mx-auto">
+                <div className="mb-12 md:mb-24 text-center max-w-3xl mx-auto">
                     <h2 className="mb-6 text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                         Everything You Need to Create <span className="text-primary">Engaging Social Content</span>
                     </h2>
-                    <p className="mx-auto text-lg text-muted-foreground leading-relaxed">
+                    <p className="mx-auto text-lg text-muted-foreground leading-relaxed px-4 sm:px-0">
                         Powerful AI tools designed to help you generate platform-optimized captions instantly, without the complexity.
                     </p>
                 </div>
@@ -74,7 +74,7 @@ export function FeaturesSection() {
                         <ScrollReveal
                             key={index}
                             delay={index * 0.05}
-                            className="group relative h-full overflow-hidden rounded-2xl border border-border/40 bg-card p-8 transition-all duration-300 hover:border-primary/50 hover:bg-accent/5 hover:shadow-2xl hover:shadow-primary/5"
+                            className="group relative h-full overflow-hidden rounded-2xl border border-border/40 bg-card p-6 md:p-8 transition-all duration-300 hover:border-primary/50 hover:bg-accent/5 hover:shadow-2xl hover:shadow-primary/5"
                         >
                             {/* Hover Gradient Effect */}
                             <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />

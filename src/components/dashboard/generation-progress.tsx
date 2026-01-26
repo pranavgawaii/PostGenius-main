@@ -4,21 +4,53 @@ import { motion } from "framer-motion";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { WorkflowType } from "@/lib/workflows";
+
 interface GenerationProgressProps {
     currentStep: number;
     isGenerating: boolean;
+    workflow?: WorkflowType | null;
 }
 
-const steps = [
-    { name: "Checking cache...", percentage: 25 },
-    { name: "Scraping blog content...", percentage: 50 },
-    { name: "Generating captions with AI...", percentage: 90 },
-    { name: "Saving to library...", percentage: 100 },
-];
+const workflowSteps: Record<string, { name: string; percentage: number }[]> = {
+    social_media: [
+        { name: "Checking cache...", percentage: 25 },
+        { name: "Scraping content...", percentage: 50 },
+        { name: "Generating captions...", percentage: 90 },
+        { name: "Finalizing...", percentage: 100 },
+    ],
+    github_readme: [
+        { name: "Checking cache...", percentage: 25 },
+        { name: "Fetching repo...", percentage: 50 },
+        { name: "Analyzing code...", percentage: 90 },
+        { name: "Writing README...", percentage: 100 },
+    ],
+    resume: [
+        { name: "Checking cache...", percentage: 25 },
+        { name: "Parsing resume...", percentage: 50 },
+        { name: "Optimizing...", percentage: 90 },
+        { name: "Formatting...", percentage: 100 },
+    ],
+    notes: [
+        { name: "Checking cache...", percentage: 25 },
+        { name: "Analyzing text...", percentage: 50 },
+        { name: "Extracting facts...", percentage: 90 },
+        { name: "Structuring...", percentage: 100 },
+    ],
+    linkedin: [
+        { name: "Checking cache...", percentage: 25 },
+        { name: "Reading content...", percentage: 50 },
+        { name: "Drafting post...", percentage: 90 },
+        { name: "Polishing...", percentage: 100 },
+    ]
+};
 
-export function GenerationProgress({ currentStep, isGenerating }: GenerationProgressProps) {
+const defaultSteps = workflowSteps.social_media;
+
+export function GenerationProgress({ currentStep, isGenerating, workflow }: GenerationProgressProps) {
     if (!isGenerating) return null;
 
+    const steps = (workflow && workflowSteps[workflow]) ? workflowSteps[workflow] : defaultSteps;
     const currentPercentage = steps[currentStep - 1]?.percentage || 0;
 
     return (

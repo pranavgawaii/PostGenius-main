@@ -11,12 +11,12 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal";
 export function FAQSection() {
     const faqs = [
         {
-            question: "How does postGENIUS work?",
-            answer: "Simply paste the URL of any blog post, article, or video into postGENIUS. Our AI analyzes the content and generates 4 unique captions optimized for Instagram, LinkedIn, Twitter, and Facebook. The entire process takes less than 5 seconds!",
+            question: "How does PostGenius work?",
+            answer: "Simply paste the URL of any blog post, article, or video into PostGenius. Our AI analyzes the content and generates 4 unique captions optimized for Instagram, LinkedIn, Twitter, and Facebook. The entire process takes less than 5 seconds!",
         },
         {
             question: "What platforms are supported?",
-            answer: "postGENIUS generates captions for Instagram, LinkedIn, Twitter, and Facebook. Each caption is optimized for the platform's character limits and audience expectations.",
+            answer: "PostGenius generates captions for Instagram, LinkedIn, Twitter, and Facebook. Each caption is optimized for the platform's character limits and audience expectations.",
         },
         {
             question: "Is there a free plan?",
@@ -31,8 +31,8 @@ export function FAQSection() {
             answer: "Absolutely! All generated captions can be copied and edited to fit your specific needs. Think of them as a strong starting point that saves you hours of writing time.",
         },
         {
-            question: "What types of content work best with postGENIUS?",
-            answer: "postGENIUS works with any public URL including blog posts, news articles, YouTube videos, product pages, and web content. The more detailed the content, the better the captions!",
+            question: "What types of content work best with PostGenius?",
+            answer: "PostGenius works with any public URL including blog posts, news articles, YouTube videos, product pages, and web content. The more detailed the content, the better the captions!",
         },
         {
             question: "Do you offer student discounts?",
@@ -45,24 +45,24 @@ export function FAQSection() {
     ];
 
     return (
-        <section id="faq" className="py-24 sm:py-32 bg-background relative overflow-hidden">
+        <section id="faq" className="py-16 sm:py-32 bg-background relative overflow-hidden">
             {/* Background Texture */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-20" />
 
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="text-center mb-16">
+                <div className="text-center mb-12 sm:mb-16">
                     <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                         Frequently Asked Questions
                     </h2>
-                    <p className="mt-4 text-lg text-muted-foreground">
-                        Everything you need to know about postGENIUS
+                    <p className="mt-4 text-lg text-muted-foreground px-4 sm:px-0">
+                        Everything you need to know about PostGenius
                     </p>
                 </div>
 
                 <div className="grid gap-4">
                     {faqs.map((faq, index) => (
                         <ScrollReveal key={index} delay={index * 0.05}>
-                            <Accordion type="single" collapsible className="bg-card border border-border rounded-xl px-6">
+                            <Accordion type="single" collapsible className="bg-card border border-border rounded-xl px-4 sm:px-6">
                                 <AccordionItem value={`item-${index}`} className="border-none">
                                     <AccordionTrigger className="text-left text-base sm:text-lg font-medium text-foreground hover:text-primary py-6">
                                         {faq.question}

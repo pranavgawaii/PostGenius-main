@@ -85,11 +85,11 @@ export default function Home() {
           }}
           title={
             <>
-              Social Media Management
-              <div className="text-muted-foreground/80 sm:mt-2">Made Simple</div>
+              Generate Perfect Social Media Captions
+              <div className="text-muted-foreground/80 sm:mt-2">With AI-Instantly</div>
             </>
           }
-          description="Plan, automate, and manage your social media content like a pro. Save time and grow your audience with Post Genius."
+          description="Paste any blog, article, or video link. Get perfect captions instantly. Save hours every week."
           actions={[
             {
               text: "Get Started Free",
@@ -97,7 +97,7 @@ export default function Home() {
               variant: "default",
             },
             {
-              text: "Learn More",
+              text: "See How It Works →",
               href: "#features",
               variant: "glow",
             },

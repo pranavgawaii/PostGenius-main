@@ -66,7 +66,7 @@ export function HeroSection({
                     )}
 
                     {/* Title */}
-                    <h1 className="relative z-10 inline-block animate-appear bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-4xl font-bold tracking-tight leading-tight text-transparent drop-shadow-2xl sm:text-6xl sm:leading-tight md:text-7xl md:leading-tight">
+                    <h1 className="relative z-10 inline-block animate-appear bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-3xl font-bold tracking-tight leading-tight text-transparent drop-shadow-2xl sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight">
                         {title}
                     </h1>
 
@@ -76,10 +76,10 @@ export function HeroSection({
                     </p>
 
                     {/* Actions */}
-                    <div className="relative z-10 flex animate-appear justify-center gap-4 opacity-0 delay-300">
+                    <div className="relative z-10 flex animate-appear flex-col sm:flex-row justify-center gap-4 opacity-0 delay-300 w-full sm:w-auto px-4 sm:px-0">
                         {actions.map((action, index) => (
-                            <Button key={index} variant={action.variant as any} size="lg" asChild>
-                                <a href={action.href} className="flex items-center gap-2">
+                            <Button key={index} variant={action.variant as any} size="lg" asChild className="w-full sm:w-auto">
+                                <a href={action.href} className="flex items-center gap-2 justify-center">
                                     {action.icon}
                                     {action.text}
                                 </a>

@@ -14,13 +14,19 @@ import {
     Settings,
     Layers,
     MessageSquare,
-    LogOut
+    LogOut,
+    Sparkles,
+    BookOpen,
+    HelpCircle
 } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 export function AppSidebar({ className }: SidebarProps) {
     const pathname = usePathname();
+    const { user } = useUser();
 
     const sidebarItems = [
         {
@@ -30,14 +36,13 @@ export function AppSidebar({ className }: SidebarProps) {
         },
         {
             title: "Library",
-            icon: Layers,
+            icon: BookOpen,
             href: "/dashboard/library",
         },
         {
             title: "Schedule",
             icon: Calendar,
             href: "/dashboard/schedule",
-            badge: "Soon"
         },
         {
             title: "Analytics",
@@ -46,21 +51,28 @@ export function AppSidebar({ className }: SidebarProps) {
             badge: "Soon"
         },
         {
-            title: "Accounts",
-            icon: Users,
-            href: "/dashboard/accounts",
-            badge: "Soon"
-        },
-        {
             title: "Settings",
             icon: Settings,
             href: "/dashboard/settings",
         },
+        {
+            title: "Help & Support",
+            icon: HelpCircle,
+            href: "#",
+            badge: "Soon"
+        }
     ];
 
+    const isActive = (href: string) => {
+        if (href === "/dashboard") {
+            return pathname === "/dashboard";
+        }
+        return pathname.startsWith(href);
+    };
+
     return (
-        <div className={cn("pb-12 min-h-screen w-64 border-r border-border bg-card/30 backdrop-blur-xl hidden md:block fixed left-0 top-0 h-full z-30", className)}>
-            <div className="space-y-4 py-4">
+        <div className={cn("pb-12 min-h-screen w-64 border-r border-border bg-card/30 backdrop-blur-xl hidden md:flex flex-col fixed left-0 top-0 h-full z-30", className)}>
+            <div className="space-y-4 py-4 flex-1">
                 <div className="px-3 py-2">
                     <Link href="/dashboard" className="flex items-center gap-2 px-4 mb-8">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -69,32 +81,59 @@ export function AppSidebar({ className }: SidebarProps) {
                         <span className="text-lg font-bold">Post Genius</span>
                     </Link>
                     <div className="space-y-1">
-                        {sidebarItems.map((item) => (
-                            <Button
-                                key={item.href}
-                                variant={pathname === item.href ? "secondary" : "ghost"}
-                                className={cn(
-                                    "w-full justify-between",
-                                    pathname === item.href && "bg-secondary text-primary font-medium"
-                                )}
-                                asChild
-                            >
-                                <Link href={item.href}>
-                                    <div className="flex items-center gap-3">
-                                        <item.icon className="h-4 w-4" />
-                                        {item.title}
-                                    </div>
-                                    {item.badge && (
-                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-bold border-primary/20 text-muted-foreground bg-primary/5">
-                                            {item.badge}
-                                        </Badge>
+                        {sidebarItems.map((item) => {
+                            const active = isActive(item.href);
+                            return (
+                                <Button
+                                    key={item.title}
+                                    variant={active ? "secondary" : "ghost"}
+                                    className={cn(
+                                        "w-full justify-between group transition-all duration-200",
+                                        active && "bg-secondary/80 text-primary font-semibold shadow-sm"
                                     )}
-                                </Link>
-                            </Button>
-                        ))}
+                                    asChild
+                                    disabled={item.badge === "Soon"}
+                                >
+                                    <Link href={item.href} className={cn(item.badge === "Soon" && "pointer-events-none opacity-60")}>
+                                        <div className="flex items-center gap-3">
+                                            <item.icon className={cn(
+                                                "h-4 w-4 transition-colors",
+                                                active ? "text-primary" : "group-hover:text-primary"
+                                            )} />
+                                            {item.title}
+                                        </div>
+                                        {item.badge && (
+                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-bold border-primary/20 text-muted-foreground bg-primary/5">
+                                                {item.badge}
+                                            </Badge>
+                                        )}
+                                    </Link>
+                                </Button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
+
+            {/* User Section */}
+            {user && (
+                <div className="p-4 mt-auto border-t border-border/40">
+                    <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                        <Avatar className="h-9 w-9 border border-primary/20">
+                            <AvatarImage src={user.imageUrl} />
+                            <AvatarFallback>{user.firstName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col overflow-hidden">
+                            <span className="text-sm font-medium truncate">
+                                {user.fullName || user.firstName}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate">
+                                Free Plan
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

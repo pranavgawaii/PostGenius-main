@@ -2,17 +2,21 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { fetchGitHubRepo } from "@/lib/githubApi";
+import {
+    getGitHubReadmePrompt,
+    getResumeBulletsPrompt,
+    getStudyNotesPrompt,
+    getLinkedInPostPrompt,
+    getSocialMediaCaptionsPrompt
+} from "@/lib/prompts";
+import {
+    parseWorkflowOutput,
+    validateWorkflowInput,
+    getWorkflowMetadata
+} from "@/lib/workflowUtils";
 
 // --- Types & Interfaces ---
-
-interface Captions {
-    instagram: string;
-    twitter: string;
-    linkedin: string;
-    facebook: string;
-    newsletter: string;
-    blog: string;
-}
 
 interface RateLimitResponse {
     allowed: boolean;
@@ -46,7 +50,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 console.log('✅ Supabase client initialized with service_role key');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-// model moved inside POST handler for better hot-reloading
 
 /**
  * Robust URL Validation
@@ -85,6 +88,7 @@ export async function POST(req: Request) {
         // Get email from Clerk for new user entry
         const user = await currentUser();
         const email = user?.emailAddresses[0]?.emailAddress || "";
+        const userName = user?.fullName || user?.firstName || undefined;
 
         // 2. USER MANAGEMENT
         console.log('📍 STEP 2: Checking if user exists in Supabase:', clerkUserId);
@@ -155,151 +159,158 @@ export async function POST(req: Request) {
             );
         }
 
-        // 4. INPUT VALIDATION
+        // 4. INPUT PROCESSING
         const body = await req.json();
-        const { blogUrl } = body;
-        console.log('📍 STEP 5: Validating URL:', blogUrl);
+        const { blogUrl, workflow = 'social_media' } = body;
+        console.log(`📍 STEP 5: Validating URL for workflow [${workflow}]:`, blogUrl);
 
-        if (!blogUrl || !isValidUrl(blogUrl)) {
-            console.error('❌ Invalid Blog URL:', blogUrl);
-            return NextResponse.json({ success: false, error: "Invalid blog URL provided" }, { status: 400 });
+        if (!blogUrl) {
+            return NextResponse.json({ success: false, error: "URL is required" }, { status: 400 });
         }
 
-        // 5. CACHING LOGIC
-        console.log('📍 STEP 6: Checking cache for URL:', blogUrl);
-        const { data: cacheRow, error: cacheError } = await supabase
-            .from("scraped_cache")
-            .select("content, expires_at")
-            .eq("blog_url", blogUrl)
-            .single();
-
-        if (cacheError && cacheError.code !== 'PGRST116') {
-            console.warn('⚠️ Cache fetch warning:', cacheError.message);
+        const validation = validateWorkflowInput(workflow, blogUrl);
+        if (!validation.valid) {
+            console.error('❌ Input Validation Failed:', validation.error);
+            return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
         }
 
-        let scrapedContent = "";
-        if (cacheRow && new Date(cacheRow.expires_at) > new Date()) {
-            console.log('✅ STEP 7: Cache HIT! Using stored content.');
-            scrapedContent = cacheRow.content;
-            cacheHit = true;
+        // 5. FETCH CONTENT
+        let content: any;
+        let scrapedContentString = ""; // For DB legacy column/logging
+        const workflowMeta = getWorkflowMetadata(workflow);
 
-            console.log('📍 STEP 7a: Logging cache hit to usage_logs...');
-            await supabase.from("usage_logs").insert({
-                user_id: userId,
-                action_type: "cache_hit",
-                success: true
-            });
-        } else {
-            console.log('❌ STEP 7: Cache MISS or Expired. Scraping...');
-
-            // 6. FIRECRAWL SCRAPING
-            console.log('📍 STEP 8: Requesting Firecrawl scrape...');
+        if (workflowMeta.usesGitHubAPI) {
+            // --- GITHUB API FETCH ---
+            console.log(`[${workflow}] Fetching GitHub repo:`, blogUrl);
             try {
-                const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
-                    },
-                    body: JSON.stringify({ url: blogUrl, formats: ["markdown"] }),
-                    signal: AbortSignal.timeout(30000), // 30s timeout
+                content = await fetchGitHubRepo(blogUrl);
+                scrapedContentString = JSON.stringify({
+                    name: content.name,
+                    description: content.description,
+                    stars: content.stars,
+                    readme_excerpt: content.readme.substring(0, 500)
                 });
+            } catch (error: any) {
+                console.error('GitHub API error:', error);
+                return NextResponse.json(
+                    { success: false, error: error.message || 'Failed to fetch GitHub repository' },
+                    { status: 400 }
+                );
+            }
+        } else {
+            // --- FIRECRAWL Fetch ---
+            // 5a. CACHING LOGIC (Only for web scraping workflows)
+            console.log('📍 STEP 6: Checking cache for URL:', blogUrl);
+            const { data: cacheRow, error: cacheError } = await supabase
+                .from("scraped_cache")
+                .select("content, expires_at")
+                .eq("blog_url", blogUrl)
+                .single();
 
-                if (!scrapeResponse.ok) {
-                    const errText = await scrapeResponse.text();
-                    throw new Error(`Firecrawl failed (${scrapeResponse.status}): ${errText}`);
-                }
+            if (cacheError && cacheError.code !== 'PGRST116') {
+                console.warn('⚠️ Cache fetch warning:', cacheError.message);
+            }
 
-                const scrapeData = await scrapeResponse.json();
-                scrapedContent = scrapeData.data?.markdown || scrapeData.data?.content || "";
+            if (cacheRow && new Date(cacheRow.expires_at) > new Date()) {
+                console.log('✅ STEP 7: Cache HIT! Using stored content.');
+                content = cacheRow.content;
+                scrapedContentString = content;
+                cacheHit = true;
 
-                if (!scrapedContent) throw new Error("Scraped content is empty");
-                console.log('✅ STEP 9: Content scraped successfully. Length:', scrapedContent.length);
-
-                // Update Cache
-                console.log('📍 STEP 9a: Updating scraped_cache table...');
-                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-                const { error: upsertError } = await supabase.from("scraped_cache").upsert({
-                    blog_url: blogUrl,
-                    content: scrapedContent,
-                    cached_at: new Date().toISOString(),
-                    expires_at: expiresAt
-                });
-
-                if (upsertError) console.error('⚠️ Failed to update cache table:', upsertError.message);
-
-                console.log('📍 STEP 9b: Logging scrape action to usage_logs...');
                 await supabase.from("usage_logs").insert({
                     user_id: userId,
-                    action_type: "scrape",
+                    action_type: "cache_hit",
                     success: true
                 });
-            } catch (scrapeErr: any) {
-                console.error('❌ STEP 9 ERROR: Scraping failed:', scrapeErr.message);
-                await supabase.from("usage_logs").insert({
-                    user_id: userId,
-                    action_type: "scrape",
-                    success: false,
-                    error_message: scrapeErr.message
-                });
-                throw new Error(`Scraping failed: ${scrapeErr.message}`);
+            } else {
+                console.log('❌ STEP 7: Cache MISS or Expired. Scraping with Firecrawl...');
+                try {
+                    const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+                        },
+                        body: JSON.stringify({ url: blogUrl, formats: ["markdown"] }),
+                        signal: AbortSignal.timeout(30000), // 30s timeout
+                    });
+
+                    if (!scrapeResponse.ok) {
+                        const errText = await scrapeResponse.text();
+                        throw new Error(`Firecrawl failed (${scrapeResponse.status}): ${errText}`);
+                    }
+
+                    const scrapeData = await scrapeResponse.json();
+                    content = scrapeData.data?.markdown || scrapeData.data?.content || "";
+                    scrapedContentString = content;
+
+                    if (!content) throw new Error("Scraped content is empty");
+                    console.log('✅ STEP 9: Content scraped successfully. Length:', content.length);
+
+                    // Update Cache
+                    console.log('📍 STEP 9a: Updating scraped_cache table...');
+                    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+                    const { error: upsertError } = await supabase.from("scraped_cache").upsert({
+                        blog_url: blogUrl,
+                        content: content, // Save full content to cache
+                        cached_at: new Date().toISOString(),
+                        expires_at: expiresAt
+                    });
+
+                    if (upsertError) console.error('⚠️ Failed to update cache table:', upsertError.message);
+
+                    console.log('📍 STEP 9b: Logging scrape action to usage_logs...');
+                    await supabase.from("usage_logs").insert({
+                        user_id: userId,
+                        action_type: "scrape",
+                        success: true
+                    });
+                } catch (scrapeErr: any) {
+                    console.error('❌ STEP 9 ERROR: Scraping failed:', scrapeErr.message);
+                    await supabase.from("usage_logs").insert({
+                        user_id: userId,
+                        action_type: "scrape",
+                        success: false,
+                        error_message: scrapeErr.message
+                    });
+                    return NextResponse.json(
+                        { success: false, error: "Failed to scrape content. Please check the URL and try again." },
+                        { status: 400 }
+                    );
+                }
             }
         }
 
-        // 7. GEMINI CAPTION GENERATION
-        const currentModelName = "gemini-flash-latest";
-        console.log(`📍 STEP 10: Calling Gemini API (${currentModelName}) for batched captions...`);
-        const model = genAI.getGenerativeModel({ model: currentModelName });
-        let captions: Captions;
+        // 6. PREPARE PROMPT
+        let prompt = "";
+        if (workflow === 'github_readme') {
+            prompt = getGitHubReadmePrompt(content);
+        } else if (workflow === 'resume') {
+            prompt = getResumeBulletsPrompt(content);
+        } else if (workflow === 'notes') {
+            prompt = getStudyNotesPrompt(content as string);
+        } else if (workflow === 'linkedin') {
+            prompt = getLinkedInPostPrompt(content as string, { name: userName });
+        } else {
+            // Default: Social Media
+            const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'newsletter', 'blog'];
+            prompt = getSocialMediaCaptionsPrompt(content as string, platforms);
+        }
+
+        // 7. GEMINI GENERATION
+        const currentModelName = "gemini-flash-latest"; // or gemini-1.5-flash
+        console.log(`📍 STEP 10: Calling Gemini API (${currentModelName}) for [${workflow}]...`);
+        let rawOutput = "";
 
         try {
-            const prompt = `You are a social media content expert. Generate platform-specific captions from this blog content.
-   
-   Blog Content:
-   ${scrapedContent.substring(0, 30000)}
-   
-   Generate captions for these platforms with exact character limits:
-   
-   1. INSTAGRAM (150 characters max): Casual tone, emojis, engaging
-   2. TWITTER (280 characters max): Hook + value, relevant hashtags
-   3. LINKEDIN (2000 characters max): Professional, detailed, paragraph format
-   4. FACEBOOK (500 characters max): Community-focused, conversational
-   5. NEWSLETTER (300 characters max): Email-friendly, compelling subject line style
-   6. BLOG (500 characters max): SEO-optimized, informative summary
-   
-   Rules:
-   - Stay within character limits
-   - Include relevant hashtags where appropriate
-   - Maintain blog's core message
-   - Use platform-appropriate tone
-   - Make content engaging and actionable
-   
-   Return ONLY valid JSON in this exact format:
-   {
-     "instagram": "caption here",
-     "twitter": "caption here",
-     "linkedin": "caption here",
-     "facebook": "caption here",
-     "newsletter": "caption here",
-     "blog": "caption here"
-   }`;
-
+            const model = genAI.getGenerativeModel({ model: currentModelName });
             const result = await model.generateContent(prompt);
             const geminiResponse = await result.response;
-            const text = geminiResponse.text();
+            rawOutput = geminiResponse.text();
 
-            console.log('✅ STEP 11: Gemini raw response received');
+            if (!rawOutput) throw new Error("Gemini returned empty response");
+            console.log('✅ STEP 11: Gemini response received');
 
-            const cleanedJson = text.replace(/```json|```/g, "").trim();
-            captions = JSON.parse(cleanedJson);
-
-            const requiredFields: (keyof Captions)[] = ["instagram", "twitter", "linkedin", "facebook", "newsletter", "blog"];
-            for (const field of requiredFields) {
-                if (!captions[field]) throw new Error(`Missing Gemini output for: ${field}`);
-            }
-            console.log('✅ STEP 12: Caption parsing and validation complete');
-
-            console.log('📍 STEP 12a: Logging generation to usage_logs...');
             await supabase.from("usage_logs").insert({ user_id: userId, action_type: "generate", success: true });
         } catch (genErr: any) {
             console.error('❌ STEP 12 ERROR: Generation failed:', genErr.message);
@@ -309,68 +320,117 @@ export async function POST(req: Request) {
                 success: false,
                 error_message: genErr.message
             });
-            throw new Error("AI Content generation failed.");
+            return NextResponse.json({ success: false, error: "AI Content generation failed." }, { status: 500 });
         }
 
-        // 8. DATABASE STORAGE
-        console.log('📍 STEP 13: Saving all captions to generations table...');
-        const blogTitle = scrapedContent.split('\n')[0].replace(/[#*]/g, '').trim().substring(0, 255) || "Untitled Post";
+        // 8. PARSE OUTPUT
+        let parsedOutput: any;
+        try {
+            parsedOutput = parseWorkflowOutput(workflow, rawOutput);
+            console.log('✅ STEP 12: Output parsed successfully');
+        } catch (parseErr) {
+            console.error('⚠️ Output parsing warning, using raw:', parseErr);
+            parsedOutput = { text: rawOutput };
+        }
+
+        // 9. DATABASE STORAGE
+        console.log('📍 STEP 13: Saving to generations table...');
+
+        const blogTitle = (scrapedContentString.split('\n')[0] || "Generations").substring(0, 100).replace(/[#*]/g, '').trim();
+
+        const isSocial = workflow === 'social_media';
+
+        // Helper to ensure safe strings for legacy columns
+        const getCaption = (obj: any, key: string) => {
+            if (!obj) return "";
+            const val = obj[key];
+            if (typeof val === 'string') return val;
+            if (val && typeof val === 'object' && val.text) return val.text;
+            return "";
+        };
+
+        const insertData: any = {
+            user_id: userId,
+            blog_url: blogUrl,
+            blog_title: blogTitle,
+            scraped_content: scrapedContentString.substring(0, 100000),
+            workflow: workflow,
+            output: parsedOutput,
+            // FIX: Ensure no NULLs for legacy NOT NULL columns
+            instagram_caption: getCaption(parsedOutput, 'instagram'),
+            twitter_caption: getCaption(parsedOutput, 'twitter'),
+            linkedin_caption: getCaption(parsedOutput, 'linkedin'),
+            facebook_caption: getCaption(parsedOutput, 'facebook'),
+            Newsletter_caption: getCaption(parsedOutput, 'newsletter'),
+            Blog_caption: getCaption(parsedOutput, 'blog'),
+            credits_used: 1
+        };
 
         const { data: genData, error: genError } = await supabase
             .from("generations")
-            .insert([{
-                user_id: userId,
-                blog_url: blogUrl,
-                blog_title: blogTitle,
-                scraped_content: scrapedContent,
-                instagram_caption: captions.instagram,
-                twitter_caption: captions.twitter,
-                linkedin_caption: captions.linkedin,
-                facebook_caption: captions.facebook,
-                Newsletter_caption: captions.newsletter,
-                Blog_caption: captions.blog,
-            }])
+            .insert([insertData])
             .select("id")
             .single();
 
         if (genError) {
-            console.error('❌ CRITICAL: Failed to save to generations table:', genError);
-            throw new Error(`Database save error: ${genError.message}`);
-        }
+            console.warn('⚠️ Save failed. Attempting fallback insert...', genError.message);
+            // Fallback: minimal valid data
+            const fallbackData = {
+                ...insertData,
+                instagram_caption: "See output",
+                twitter_caption: "See output",
+                linkedin_caption: "See output",
+                facebook_caption: "See output",
+                Newsletter_caption: "See output",
+                Blog_caption: "See output",
+            };
 
-        generationId = genData.id;
-        console.log('✅ STEP 14: Generation saved successfully. Generation ID:', generationId);
+            const { data: retryData, error: retryError } = await supabase
+                .from("generations")
+                .insert([fallbackData])
+                .select("id")
+                .single();
 
-        // 9. USAGE INCREMENT
-        console.log('📍 STEP 15: Incrementing user usage counter...');
-        const { error: incError } = await supabase.rpc("increment_user_usage", {
-            user_clerk_id: clerkUserId
-        });
-
-        if (incError) {
-            console.error('⚠️ Usage increment RPC failed:', incError.message);
+            if (retryError) {
+                console.error('❌ CRITICAL: Failed to save generation:', retryError);
+                // We proceed to return data to user, but log the error
+            } else {
+                generationId = retryData?.id;
+            }
         } else {
-            console.log('✅ STEP 16: Usage increment successful');
+            generationId = genData?.id;
+            console.log('✅ STEP 14: Generation saved. ID:', generationId);
         }
 
-        // 10. FINAL RESPONSE
-        console.log('🌟 GENERATION COMPLETE! Returning success response.');
+        // 10. CREDIT DEDUCTION
+        console.log('📍 STEP 15: Updating usage and credits...');
+        // 1. Increment total generations stats
+        await supabase.rpc("increment_user_usage", { user_clerk_id: clerkUserId });
+
+        // 2. Deduct credits explicitly (FIX for live update)
+        if (limits.plan_type !== 'unlimited') {
+            const newCredits = Math.max(0, limits.remaining - 1);
+            const { error: deductError } = await supabase
+                .from('users')
+                .update({ credits_remaining: newCredits })
+                .eq('clerk_user_id', clerkUserId);
+
+            if (deductError) console.error('⚠️ Credit deduction failed:', deductError.message);
+            else console.log(`✅ Credits deducted. Remaining: ${newCredits}`);
+        }
+
+        // 11. FINAL RESPONSE
         return NextResponse.json({
             success: true,
             generation_id: generationId,
-            blog_url: blogUrl,
-            blog_title: blogTitle,
-            captions,
-            requests_remaining: limits.remaining - 1,
+            workflow: workflow,
+            output: parsedOutput,
+            captions: isSocial ? parsedOutput : undefined,
+            // Return updated limit
+            requests_remaining: limits.plan_type === 'unlimited' ? 999 : Math.max(0, limits.remaining - 1),
             daily_limit: limits.daily_limit,
             plan_type: limits.plan_type,
-            reset_at: limits.reset_at,
-            upgrade_available: limits.plan_type === 'free',
-            debug: {
-                user_created: wasUserCreated,
-                cache_hit: cacheHit,
-                user_db_id: userId
-            }
+            reset_at: limits.reset_at
         });
 
     } catch (error: any) {
