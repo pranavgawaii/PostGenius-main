@@ -151,7 +151,7 @@ export function Pricing({
                                         }
                                         format={{
                                             style: "currency",
-                                            currency: "USD",
+                                            currency: "INR",
                                             minimumFractionDigits: 0,
                                             maximumFractionDigits: 0,
                                         }}
@@ -206,6 +206,17 @@ export function Pricing({
                         </div>
                     </motion.div>
                 ))}
+            </div>
+
+            {/* Student Discount Banner */}
+            <div className="mt-12 text-center">
+                <div className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-6">
+                    🎓 Student Discount: Get 50% OFF Pro Plan with your .edu email address
+                </div>
+
+                <p className="text-muted-foreground text-sm">
+                    Need a custom plan? Contact us for enterprise pricing and volume discounts.
+                </p>
             </div>
         </div>
     );

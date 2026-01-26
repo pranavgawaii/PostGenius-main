@@ -123,7 +123,7 @@ export function RepurposeInput({
                                 type="submit"
                                 size="lg"
                                 className={cn(
-                                    "h-12 rounded-xl text-white shadow-lg transition-all w-28",
+                                    "h-12 rounded-xl text-primary-foreground shadow-lg transition-all w-28",
                                     isLimitReached
                                         ? "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
                                         : "bg-primary shadow-primary/20 hover:bg-primary/90 hover:scale-105"

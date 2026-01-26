@@ -1,135 +1,99 @@
-"use client";
-
 import Link from "next/link";
-import { Icons } from "@/components/ui/icons";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { Github, Twitter, Linkedin, Mail } from "lucide-react";
 
 export function Footer() {
     return (
-        <footer className="border-t border-border bg-secondary/30 pt-16 pb-10">
-            <div className="mx-auto max-w-container px-4 sm:px-8">
-                <ScrollReveal className="grid gap-12 sm:grid-cols-2 md:grid-cols-4 lg:gap-16">
-                    {/* Brand Column */}
-                    <div className="flex flex-col gap-6">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                <Icons.logo className="h-5 w-5" />
-                            </div>
-                            <span className="text-lg font-bold">Post Genius</span>
-                        </Link>
-                        <p className="text-sm text-muted-foreground">
-                            Making social media management simple and effective for everyone.
+        <footer className="bg-background text-muted-foreground py-12 sm:py-20 border-t border-border">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                    {/* Brand */}
+                    <div className="space-y-4">
+                        <div className="text-xl font-bold text-foreground tracking-tight">
+                            PostGenius
+                        </div>
+                        <p className="text-sm leading-relaxed max-w-xs text-muted-foreground">
+                            Generate engaging captions for Instagram, LinkedIn, Twitter, and Facebook in seconds with AI.
                         </p>
-                        <div className="flex gap-4">
-                            <Link
-                                href="#"
-                                className="text-muted-foreground transition-colors hover:text-primary"
-                            >
-                                <Icons.twitter className="h-5 w-5" />
-                                <span className="sr-only">Twitter</span>
-                            </Link>
-                            <Link
-                                href="#"
-                                className="text-muted-foreground transition-colors hover:text-primary"
-                            >
-                                <Icons.gitHub className="h-5 w-5" />
-                                <span className="sr-only">GitHub</span>
-                            </Link>
+                        <div className="flex gap-4 pt-2">
+                            <ActionIcon href="#" icon={<Twitter className="h-5 w-5" />} label="Twitter" />
+                            <ActionIcon href="#" icon={<Linkedin className="h-5 w-5" />} label="LinkedIn" />
+                            <ActionIcon href="#" icon={<Github className="h-5 w-5" />} label="GitHub" />
+                            <ActionIcon href="mailto:hello@postgenius.ai" icon={<Mail className="h-5 w-5" />} label="Email" />
                         </div>
                     </div>
 
-                    {/* Product Column */}
+                    {/* Links Column 1 */}
                     <div>
-                        <h4 className="mb-6 text-sm font-semibold text-foreground uppercase tracking-wider">
-                            Product
-                        </h4>
-                        <ul className="space-y-4 text-sm text-muted-foreground">
-                            <li>
-                                <Link href="#features" className="hover:text-primary">
-                                    Features
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#pricing" className="hover:text-primary">
-                                    Pricing
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Integrations
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Changelog
-                                </Link>
-                            </li>
+                        <h3 className="font-semibold text-foreground mb-4">Product</h3>
+                        <ul className="space-y-3 text-sm">
+                            <li><FooterLink href="#features">Features</FooterLink></li>
+                            <li><FooterLink href="#pricing">Pricing</FooterLink></li>
+                            <li><FooterLink href="#how-it-works">How It Works</FooterLink></li>
+                            <li><FooterLink href="#">Examples</FooterLink></li>
                         </ul>
                     </div>
 
-                    {/* Resources Column */}
+                    {/* Links Column 2 */}
                     <div>
-                        <h4 className="mb-6 text-sm font-semibold text-foreground uppercase tracking-wider">
-                            Resources
-                        </h4>
-                        <ul className="space-y-4 text-sm text-muted-foreground">
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Blog
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Community
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Help Center
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    API Docs
-                                </Link>
-                            </li>
+                        <h3 className="font-semibold text-foreground mb-4">Resources</h3>
+                        <ul className="space-y-3 text-sm">
+                            <li><FooterLink href="#">Blog</FooterLink></li>
+                            <li><FooterLink href="#">Support</FooterLink></li>
+                            <li><FooterLink href="#">Contact Us</FooterLink></li>
+                            <li><FooterLink href="#faq">FAQ</FooterLink></li>
                         </ul>
                     </div>
 
-                    {/* Company Column */}
+                    {/* Links Column 3 */}
                     <div>
-                        <h4 className="mb-6 text-sm font-semibold text-foreground uppercase tracking-wider">
-                            Company
-                        </h4>
-                        <ul className="space-y-4 text-sm text-muted-foreground">
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    About
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Careers
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Legal
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="hover:text-primary">
-                                    Contact
-                                </Link>
-                            </li>
+                        <h3 className="font-semibold text-foreground mb-4">Company</h3>
+                        <ul className="space-y-3 text-sm">
+                            <li><FooterLink href="#">About Us</FooterLink></li>
+                            <li><FooterLink href="#">Privacy Policy</FooterLink></li>
+                            <li><FooterLink href="#">Terms of Service</FooterLink></li>
                         </ul>
                     </div>
-                </ScrollReveal>
+                </div>
 
-                <div className="mt-16 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-                    <p>&copy; 2025 Post Genius. All rights reserved.</p>
+                {/* Bottom Bar */}
+                <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
+                    <div>
+                        &copy; {new Date().getFullYear()} PostGenius. All rights reserved.
+                    </div>
+
+                    <div className="text-muted-foreground">
+                        Design & Developed by{' '}
+                        <a
+                            href="https://prnv.site"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80 font-medium transition-colors hover:underline decoration-primary/50 underline-offset-4"
+                        >
+                            pranavgawai
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
+    );
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+    return (
+        <Link href={href} className="hover:text-foreground transition-colors block w-fit">
+            {children}
+        </Link>
+    );
+}
+
+function ActionIcon({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+    return (
+        <a
+            href={href}
+            aria-label={label}
+            className="p-2 rounded-full bg-accent hover:bg-accent/80 text-muted-foreground hover:text-foreground transition-all"
+        >
+            {icon}
+        </a>
     );
 }

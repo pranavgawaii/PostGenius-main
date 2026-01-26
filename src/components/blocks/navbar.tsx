@@ -33,16 +33,10 @@ export function Navbar() {
                         Pricing
                     </Link>
                     <Link
-                        href="#"
+                        href="#faq"
                         className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
-                        Integrations
-                    </Link>
-                    <Link
-                        href="#"
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                        Changelog
+                        FAQ
                     </Link>
                 </div>
 

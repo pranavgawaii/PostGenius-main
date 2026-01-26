@@ -100,6 +100,7 @@ export function HeroSection({
                                     width={1248}
                                     height={765}
                                     priority
+                                    unoptimized
                                 />
                             </Mockup>
                         </MockupFrame>
