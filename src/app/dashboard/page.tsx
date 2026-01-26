@@ -1,125 +1,131 @@
-import { OverviewChart } from "@/components/dashboard/overview-chart";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, ArrowUpRight, ArrowUp, ArrowDown } from "lucide-react";
+"use client";
+
+import { useState, useCallback } from "react";
+import { RepurposeInput } from "@/components/dashboard/repurpose-input";
+import { PlatformPreview } from "@/components/dashboard/platform-preview";
+import { UsageStatsCards } from "@/components/dashboard/usage-stats-cards";
+import { RecentGenerations } from "@/components/dashboard/recent-generations";
+import { GenerationProgress } from "@/components/dashboard/generation-progress";
+import { ErrorAlert } from "@/components/dashboard/error-alert";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default function DashboardPage() {
-    return (
-        <div className="space-y-8">
-            {/* Page Header */}
-            <div className="flex items-center justify-between space-y-2">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-                    <p className="text-muted-foreground">
-                        Overview of your social media performance.
-                    </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Button variant="outline" className="hidden sm:flex">Download Report</Button>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                        <Plus className="mr-2 h-4 w-4" /> Create Post
-                    </Button>
-                </div>
-            </div>
+    const [url, setUrl] = useState("");
+    const [showResults, setShowResults] = useState(false);
+    const [generatedData, setGeneratedData] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [error, setError] = useState<string | null>(null);
 
-            {/* Stats Cards */}
+    const handleGenerate = useCallback(async (targetUrl: string) => {
+        const urlToUse = targetUrl || url;
+        if (!urlToUse) {
+            setError("Please enter a blog URL");
+            return;
+        }
+
+        // Basic URL validation
+        if (!urlToUse.startsWith("http")) {
+            setError("Please enter a valid URL (must start with http:// or https://)");
+            return;
+        }
+
+        console.log("🚀 Starting generation for:", urlToUse);
+        setLoading(true);
+        setError(null);
+        setGeneratedData(null);
+        setShowResults(false);
+        setCurrentStep(1);
+
+        try {
+            // Step 1: Checking Cache
+            setTimeout(() => setCurrentStep(2), 2000);
+
+            const res = await fetch("/api/generate-captions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ blogUrl: urlToUse }),
+            });
+
+            // Step 2 & 3 are handled by the single API call, we mock the transition
+            setTimeout(() => setCurrentStep(3), 5000);
+            setTimeout(() => setCurrentStep(4), 10000);
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Generation failed");
+            }
+
+            const data = await res.json();
+            setGeneratedData(data.captions); // Assuming the API returns captions object
+            setShowResults(true);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || "An unexpected error occurred. Please try again.");
+        } finally {
+            setLoading(false);
+            setCurrentStep(0);
+        }
+    }, [url]);
+
+    // Keyboard Shortcuts Integration
+    useKeyboardShortcuts({
+        onGenerate: () => handleGenerate(url),
+        onFocusInput: () => {
+            window.dispatchEvent(new CustomEvent("focus-repurpose-input", { detail: { focusInput: true } }));
+        },
+        onCloseModal: () => {
+            setError(null);
+            setShowResults(false);
+        }
+    });
+
+    return (
+        <div className="space-y-10 pb-20 max-w-7xl mx-auto">
             <ScrollReveal>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                Total Followers
-                            </CardTitle>
-                            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">45,231</div>
-                            <p className="text-xs text-muted-foreground">
-                                <span className="text-green-500 font-medium flex items-center inline-block">
-                                    <ArrowUp className="h-3 w-3 mr-1 inline" /> +20.1%
-                                </span>{" "}
-                                from last month
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                Engagement Rate
-                            </CardTitle>
-                            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">5.4%</div>
-                            <p className="text-xs text-muted-foreground">
-                                <span className="text-green-500 font-medium flex items-center inline-block">
-                                    <ArrowUp className="h-3 w-3 mr-1 inline" /> +1.2%
-                                </span>{" "}
-                                from last month
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Scheduled Posts</CardTitle>
-                            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">12</div>
-                            <p className="text-xs text-muted-foreground">
-                                For next 7 days
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                Active Campaigns
-                            </CardTitle>
-                            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">3</div>
-                            <p className="text-xs text-muted-foreground">
-                                <span className="text-red-500 font-medium flex items-center inline-block">
-                                    <ArrowDown className="h-3 w-3 mr-1 inline" /> -1
-                                </span>{" "}
-                                ending soon
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
+                <UsageStatsCards />
             </ScrollReveal>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                {/* Main Chart */}
-                <Card className="col-span-4 shadow-lg border-primary/5">
-                    <CardHeader>
-                        <CardTitle>Overview</CardTitle>
-                        <CardDescription>
-                            Your audience growth and engagement over time.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <OverviewChart />
-                    </CardContent>
-                </Card>
+            {/* Header / Input Section */}
+            <div className="relative min-h-[450px] flex flex-col justify-center items-center rounded-[2.5rem] bg-gradient-to-b from-background to-muted/20 border border-border/50 overflow-hidden px-4 transition-all duration-500">
+                <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
 
-                {/* Recent Activity */}
-                <Card className="col-span-3 shadow-lg border-primary/5">
-                    <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
-                        <CardDescription>
-                            Latest actions performed by your team.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <RecentActivity />
-                    </CardContent>
-                </Card>
+                <div className="w-full max-w-3xl space-y-4">
+                    <RepurposeInput
+                        url={url}
+                        setUrl={setUrl}
+                        onGenerate={handleGenerate}
+                        isGenerating={loading}
+                        error={error}
+                    />
+
+                    <ErrorAlert
+                        message={error}
+                        onDismiss={() => setError(null)}
+                        type={error?.includes("limit") ? "warning" : "error"}
+                    />
+
+                    <GenerationProgress
+                        currentStep={currentStep}
+                        isGenerating={loading}
+                    />
+                </div>
             </div>
+
+            {/* Recent Generations */}
+            {!showResults && !loading && (
+                <ScrollReveal>
+                    <RecentGenerations />
+                </ScrollReveal>
+            )}
+
+            {/* Results Section */}
+            {showResults && (
+                <ScrollReveal>
+                    <PlatformPreview visible={showResults} data={generatedData} />
+                </ScrollReveal>
+            )}
         </div>
     );
 }

@@ -1,9 +1,0 @@
-CLERK_PUBLISHABLE_KEY=pk_test_aW1tdW5lLW9jdG9wdXMtNzguY2xlcmsuYWNjb3VudHMuZGV2JA
-CLERK_SECRET_KEY=sk_test_sZJO2My5MLqdRpIgBIjOj6zlTIoGUYTn7GqPORty4s
-SECRET_KEY=django-insecure-vt9phbr%$u*a0(0u319hme0ykgpc)62^b*o7j2&=bu2x$8bjw=
-DEBUG=False
-ALLOWED_HOSTS=.vercel.app
-OPENAI_API_KEY=your_openai_api_key_here
-FB_APP_ID=your_facebook_app_id_here
-FB_APP_SECRET=your_facebook_app_secret_here
-FB_REDIRECT_URI=https://your-project-name.vercel.app/facebook/callback/

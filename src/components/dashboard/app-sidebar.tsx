@@ -28,6 +28,11 @@ export function AppSidebar({ className }: SidebarProps) {
             href: "/dashboard",
         },
         {
+            title: "Library",
+            icon: Layers,
+            href: "/dashboard/library",
+        },
+        {
             title: "Schedule",
             icon: Calendar,
             href: "/dashboard/schedule",
@@ -38,19 +43,9 @@ export function AppSidebar({ className }: SidebarProps) {
             href: "/dashboard/analytics",
         },
         {
-            title: "Posts",
-            icon: Layers,
-            href: "/dashboard/posts",
-        },
-        {
-            title: "Inbox",
-            icon: MessageSquare,
-            href: "/dashboard/inbox",
-        },
-        {
-            title: "Team",
+            title: "Accounts",
             icon: Users,
-            href: "/dashboard/team",
+            href: "/dashboard/accounts",
         },
         {
             title: "Settings",
@@ -87,13 +82,6 @@ export function AppSidebar({ className }: SidebarProps) {
                             </Button>
                         ))}
                     </div>
-                </div>
-            </div>
-            <div className="absolute bottom-4 px-4 w-full">
-                <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-4 border border-primary/10">
-                    <h4 className="text-sm font-semibold mb-1">Upgrade Plan</h4>
-                    <p className="text-xs text-muted-foreground mb-3">Unlock advanced features</p>
-                    <Button size="sm" className="w-full text-xs">Upgrade</Button>
                 </div>
             </div>
         </div>
