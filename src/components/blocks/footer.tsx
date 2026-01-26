@@ -56,7 +56,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-8 border-t border-border flex flex-col items-center gap-2 text-sm text-center">
+                <div className="pt-8 border-t border-border flex flex-col items-center gap-1 text-sm text-center">
                     <div className="text-muted-foreground">
                         Design & Developed by{' '}
                         <a
