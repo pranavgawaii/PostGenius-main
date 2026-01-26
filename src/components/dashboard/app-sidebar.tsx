@@ -62,7 +62,7 @@ export function AppSidebar({ className }: SidebarProps) {
         <div className={cn("pb-12 min-h-screen w-64 border-r border-border bg-card/30 backdrop-blur-xl hidden md:block fixed left-0 top-0 h-full z-30", className)}>
             <div className="space-y-4 py-4">
                 <div className="px-3 py-2">
-                    <Link href="/" className="flex items-center gap-2 px-4 mb-8">
+                    <Link href="/dashboard" className="flex items-center gap-2 px-4 mb-8">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                             <Icons.logo className="h-5 w-5" />
                         </div>
