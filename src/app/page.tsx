@@ -103,8 +103,8 @@ export default function Home() {
             },
           ]}
           image={{
-            light: "/dashboard-light-v2.png",
-            dark: "/dashboard-dark-v2.png",
+            light: "/light.png",
+            dark: "/dark.png",
             alt: "Post Genius Dashboard Preview",
           }}
         />
