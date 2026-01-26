@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/ui/icons";
 import {
     LayoutDashboard,
@@ -36,16 +37,19 @@ export function AppSidebar({ className }: SidebarProps) {
             title: "Schedule",
             icon: Calendar,
             href: "/dashboard/schedule",
+            badge: "Soon"
         },
         {
             title: "Analytics",
             icon: BarChart3,
             href: "/dashboard/analytics",
+            badge: "Soon"
         },
         {
             title: "Accounts",
             icon: Users,
             href: "/dashboard/accounts",
+            badge: "Soon"
         },
         {
             title: "Settings",
@@ -70,14 +74,21 @@ export function AppSidebar({ className }: SidebarProps) {
                                 key={item.href}
                                 variant={pathname === item.href ? "secondary" : "ghost"}
                                 className={cn(
-                                    "w-full justify-start gap-3",
+                                    "w-full justify-between",
                                     pathname === item.href && "bg-secondary text-primary font-medium"
                                 )}
                                 asChild
                             >
                                 <Link href={item.href}>
-                                    <item.icon className="h-4 w-4" />
-                                    {item.title}
+                                    <div className="flex items-center gap-3">
+                                        <item.icon className="h-4 w-4" />
+                                        {item.title}
+                                    </div>
+                                    {item.badge && (
+                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-bold border-primary/20 text-muted-foreground bg-primary/5">
+                                            {item.badge}
+                                        </Badge>
+                                    )}
                                 </Link>
                             </Button>
                         ))}
