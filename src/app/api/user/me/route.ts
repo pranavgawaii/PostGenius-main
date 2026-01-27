@@ -21,11 +21,38 @@ export async function GET(req: Request) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
 
-        const { data: userData, error } = await supabase
+        let { data: userData, error } = await supabase
             .from("users")
             .select("plan, plan_type, credits_remaining, email, is_admin")
             .eq("clerk_user_id", clerkUserId)
             .single();
+
+        // FALLBACK SYNC: If user not found in Supabase, create them now
+        if (error && error.code === 'PGRST116') {
+            const { currentUser } = await import('@clerk/nextjs/server');
+            const clerkUser = await currentUser();
+
+            if (clerkUser) {
+                const email = clerkUser.emailAddresses[0]?.emailAddress;
+                if (email) {
+                    // Insert new user
+                    const { data: newUser, error: insertError } = await supabase
+                        .from('users')
+                        .insert({
+                            clerk_user_id: clerkUserId,
+                            email: email,
+                            plan_type: 'free'
+                        })
+                        .select("plan, plan_type, credits_remaining, email, is_admin")
+                        .single();
+
+                    if (!insertError) {
+                        userData = newUser;
+                        error = null;
+                    }
+                }
+            }
+        }
 
         if (error) throw error;
 

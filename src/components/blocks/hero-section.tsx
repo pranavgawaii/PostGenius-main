@@ -5,9 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRightIcon } from "lucide-react";
 import { Mockup, MockupFrame } from "@/components/ui/mockup";
 import { Glow } from "@/components/ui/glow";
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { DashboardPreview } from "@/components/dashboard/demo/dashboard-preview";
 
 interface HeroAction {
     text: string;
@@ -94,14 +94,7 @@ export function HeroSection({
                             size="small"
                         >
                             <Mockup type="responsive">
-                                <Image
-                                    src={imageSrc}
-                                    alt={image.alt}
-                                    width={1248}
-                                    height={765}
-                                    priority
-                                    unoptimized
-                                />
+                                <DashboardPreview />
                             </Mockup>
                         </MockupFrame>
                         <Glow
