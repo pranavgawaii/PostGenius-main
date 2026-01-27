@@ -21,7 +21,7 @@ export default async function UpgradePage({ params }: UpgradePageProps) {
         redirect("/sign-in");
     }
 
-    if (!["premium", "pro"].includes(targetPlan)) {
+    if (!["pro", "unlimited"].includes(targetPlan)) {
         notFound();
     }
 
@@ -41,28 +41,30 @@ export default async function UpgradePage({ params }: UpgradePageProps) {
         limit: string;
         features: string[];
     }> = {
-        premium: {
-            name: "Premium",
-            price: "₹149/month",
+        pro: {
+            name: "Pro",
+            price: "₹99/month",
             limit: "50 gens/day",
             features: [
-                "50 Generations per day",
-                "Advanced AI Optimization",
-                "Priority Support Access",
-                "CSV Export Capabilities",
-                "Ad-free Experience"
+                "50 captions per day",
+                "4 platforms included",
+                "Priority support",
+                "Advanced analytics",
+                "Bulk generation (10 URLs)",
+                "No watermarks"
             ]
         },
-        pro: {
-            name: "Professional",
-            price: "₹399/month",
-            limit: "200 gens/day",
+        unlimited: {
+            name: "Unlimited",
+            price: "₹299/month",
+            limit: "Unlimited gens",
             features: [
-                "200 Generations per day",
-                "Full API Access",
-                "Priority 24/7 Support",
-                "All Advanced Platforms",
-                "Early access to new features"
+                "Unlimited captions",
+                "4 platforms included",
+                "API access",
+                "Team collaboration",
+                "White-label option",
+                "Dedicated support"
             ]
         }
     };

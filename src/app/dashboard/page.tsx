@@ -23,6 +23,7 @@ import { LinkedInPostOutput } from "@/components/dashboard/outputs/linkedin-post
 import { WorkflowType, workflows } from "@/lib/workflows";
 import { validateInput } from "@/lib/workflowHelpers";
 import { UpgradeBanner } from "@/components/dashboard/upgrade-banner";
+import { PageLoader } from "@/components/ui/logo-loader";
 
 export default function DashboardPage() {
     const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowType | null>(null);
@@ -43,6 +44,10 @@ export default function DashboardPage() {
     // Fetch generations on mount
     useEffect(() => {
         const fetchGenerations = async () => {
+            // Artificial delay to ensure loader is seen (Premium Feel)
+            const minLoadTime = 1500;
+            const startTime = Date.now();
+
             try {
                 const res = await fetch("/api/user/generations");
                 if (res.ok) {
@@ -52,7 +57,12 @@ export default function DashboardPage() {
             } catch (error) {
                 console.error("Failed to fetch generations", error);
             } finally {
-                setLoadingGenerations(false);
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = Math.max(0, minLoadTime - elapsedTime);
+
+                setTimeout(() => {
+                    setLoadingGenerations(false);
+                }, remainingTime);
             }
         };
         fetchGenerations();
@@ -168,6 +178,12 @@ export default function DashboardPage() {
 
     const currentWorkflowDef = workflows.find(w => w.id === selectedWorkflow);
     const showUpgradeBanner = creditsRemaining === 0 && userPlan !== 'unlimited' && userPlan !== 'pro';
+
+    // --- Splash Screen Loader ---
+    // Show loader while initial critical data (generations or credits) is fetching
+    if (loadingGenerations || creditsRemaining === null) {
+        return <PageLoader />;
+    }
 
     return (
         <div className={cn(

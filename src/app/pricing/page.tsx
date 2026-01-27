@@ -27,56 +27,58 @@ export default async function PricingPage() {
             id: "free",
             name: "Free",
             price: "₹0",
-            priceSub: "Free forever",
-            description: "Perfect for casual creators",
-            limit: "5 generations/day",
+            priceSub: "/ per month",
+            description: "perfect for students, creators, and businesses.",
+            limit: "5 captions/day",
             features: [
-                { text: "5 Generations per day", included: true },
-                { text: "All 6 Platforms", included: true },
-                { text: "Smart Content Caching", included: true },
-                { text: "Standard Support", included: true },
-                { text: "Export to CSV", included: false },
-                { text: "API Access", included: false },
-                { text: "Custom Tone Selection", included: false, comingSoon: true },
+                { text: "5 captions per day", included: true },
+                { text: "4 platforms (Instagram, LinkedIn, Twitter, Facebook)", included: true },
+                { text: "Content library", included: true },
+                { text: "Hashtag suggestions", included: true },
+                { text: "Character counter", included: true },
+                { text: "Basic support", included: true },
+                { text: "No credit card required", included: true },
             ],
-            cta: "Get Started"
-        },
-        {
-            id: "premium",
-            name: "Premium",
-            price: "₹149",
-            priceSub: "/month",
-            description: "For serious social growers",
-            limit: "50 generations/day",
-            popular: true,
-            features: [
-                { text: "50 Generations per day", included: true },
-                { text: "All 6 Platforms", included: true },
-                { text: "Smart Content Caching", included: true },
-                { text: "Priority Support", included: true },
-                { text: "Export to CSV", included: true },
-                { text: "API Access", included: false },
-                { text: "Custom Tone Selection", included: true, comingSoon: true },
-            ],
-            cta: "Upgrade to Premium"
+            cta: "Get Started Free"
         },
         {
             id: "pro",
-            name: "Professional",
-            price: "₹399",
-            priceSub: "/month",
-            description: "The ultimate content engine",
-            limit: "200 generations/day",
+            name: "Pro",
+            price: "₹99",
+            priceSub: "/ per month",
+            description: "For professional social media managers",
+            limit: "50 captions/day",
+            popular: true,
             features: [
-                { text: "200 Generations per day", included: true },
-                { text: "All 6 Platforms", included: true },
-                { text: "Smart Content Caching", included: true },
-                { text: "24/7 Priority Support", included: true },
-                { text: "Advanced Export (CSV/JSON)", included: true },
-                { text: "Full API Access", included: true },
-                { text: "Hashtag Generator", included: true, comingSoon: true },
+                { text: "50 captions per day", included: true },
+                { text: "4 platforms (Instagram, LinkedIn, Twitter, Facebook)", included: true },
+                { text: "Priority support", included: true },
+                { text: "Advanced analytics", included: true },
+                { text: "Bulk generation (10 URLs)", included: true },
+                { text: "Caption templates", included: true },
+                { text: "No watermarks", included: true },
+                { text: "14-day free trial", included: true },
             ],
-            cta: "Go Pro Now"
+            cta: "Start Free Trial"
+        },
+        {
+            id: "unlimited",
+            name: "Unlimited",
+            price: "₹299",
+            priceSub: "/ per month",
+            description: "For agencies managing multiple clients",
+            limit: "Unlimited captions",
+            features: [
+                { text: "Unlimited captions", included: true },
+                { text: "4 platforms (Instagram, LinkedIn, Twitter, Facebook)", included: true },
+                { text: "API access", included: true },
+                { text: "Team collaboration", included: true },
+                { text: "White-label option", included: true },
+                { text: "Custom branding", included: true },
+                { text: "Dedicated support", included: true },
+                { text: "Priority features", included: true },
+            ],
+            cta: "Contact Sales"
         }
     ];
 
@@ -109,13 +111,12 @@ export default async function PricingPage() {
                 </ScrollReveal>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                    {plans.map((plan, i) => (
-                        <ScrollReveal key={plan.id} delay={i * 100}>
-                            <PricingCard
-                                plan={plan}
-                                isCurrentPlan={currentPlan === plan.id || (plan.id === 'free' && currentPlan === 'unlimited')}
-                            />
-                        </ScrollReveal>
+                    {plans.map((plan) => (
+                        <PricingCard
+                            key={plan.id}
+                            plan={plan}
+                            isCurrentPlan={currentPlan === plan.id}
+                        />
                     ))}
                 </div>
 

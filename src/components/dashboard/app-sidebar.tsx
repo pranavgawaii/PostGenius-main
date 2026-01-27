@@ -60,8 +60,7 @@ export function AppSidebar({ className }: SidebarProps) {
         {
             title: "Help & Support",
             icon: HelpCircle,
-            href: "#",
-            badge: "Soon"
+            href: "/dashboard/support",
         }
     ];
 
@@ -130,9 +129,11 @@ export function AppSidebar({ className }: SidebarProps) {
                                             active && "bg-secondary/80 text-primary font-semibold shadow-sm"
                                         )}
                                         asChild
-                                        disabled={item.badge === "Soon"}
+                                        disabled={item.badge === "Soon" && item.title !== "Schedule"}
                                     >
-                                        <Link href={item.href} className={cn(item.badge === "Soon" && "pointer-events-none opacity-60")}>
+                                        <Link href={item.href} className={cn(
+                                            item.badge === "Soon" && item.title !== "Schedule" && "pointer-events-none opacity-60"
+                                        )}>
                                             <div className="flex items-center gap-3">
                                                 <item.icon className={cn(
                                                     "h-4 w-4 transition-colors",
