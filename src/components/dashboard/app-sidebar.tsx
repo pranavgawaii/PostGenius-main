@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,8 @@ import {
     LogOut,
     Sparkles,
     BookOpen,
-    HelpCircle
+    HelpCircle,
+    ShieldAlert
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -63,6 +65,37 @@ export function AppSidebar({ className }: SidebarProps) {
         }
     ];
 
+    const [dbUser, setDbUser] = useState<any>(null);
+
+    useEffect(() => {
+        async function fetchUserData() {
+            if (!user) return;
+            try {
+                const res = await fetch('/api/user/me');
+                const result = await res.json();
+                if (result.success) {
+                    setDbUser(result.data);
+                }
+            } catch (err) {
+                console.error("Error fetching user data in sidebar:", err);
+            }
+        }
+        fetchUserData();
+    }, [user]);
+
+    // Check for admin status in DB (primary) or Clerk public metadata (fallback)
+    const isAdminFromDb = dbUser?.is_admin === true;
+    const isAdminFromClerk = user?.publicMetadata?.role === 'admin' || user?.publicMetadata?.is_admin === true;
+    const isAdmin = isAdminFromDb || isAdminFromClerk;
+
+    if (isAdmin) {
+        sidebarItems.push({
+            title: "Admin Panel",
+            icon: ShieldAlert,
+            href: "/dashboard/admin",
+        });
+    }
+
     const isActive = (href: string) => {
         if (href === "/dashboard") {
             return pathname === "/dashboard";
@@ -81,34 +114,40 @@ export function AppSidebar({ className }: SidebarProps) {
                         <span className="text-lg font-bold">Post Genius</span>
                     </Link>
                     <div className="space-y-1">
-                        {sidebarItems.map((item) => {
+                        {sidebarItems.map((item, index) => {
                             const active = isActive(item.href);
+                            const isAdminItem = item.title === "Admin Panel";
+
                             return (
-                                <Button
-                                    key={item.title}
-                                    variant={active ? "secondary" : "ghost"}
-                                    className={cn(
-                                        "w-full justify-between group transition-all duration-200",
-                                        active && "bg-secondary/80 text-primary font-semibold shadow-sm"
+                                <div key={item.title}>
+                                    {isAdminItem && (
+                                        <div className="h-px bg-border my-4 mx-4 opacity-50" />
                                     )}
-                                    asChild
-                                    disabled={item.badge === "Soon"}
-                                >
-                                    <Link href={item.href} className={cn(item.badge === "Soon" && "pointer-events-none opacity-60")}>
-                                        <div className="flex items-center gap-3">
-                                            <item.icon className={cn(
-                                                "h-4 w-4 transition-colors",
-                                                active ? "text-primary" : "group-hover:text-primary"
-                                            )} />
-                                            {item.title}
-                                        </div>
-                                        {item.badge && (
-                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-bold border-primary/20 text-muted-foreground bg-primary/5">
-                                                {item.badge}
-                                            </Badge>
+                                    <Button
+                                        variant={active ? "secondary" : "ghost"}
+                                        className={cn(
+                                            "w-full justify-between group transition-all duration-200",
+                                            active && "bg-secondary/80 text-primary font-semibold shadow-sm"
                                         )}
-                                    </Link>
-                                </Button>
+                                        asChild
+                                        disabled={item.badge === "Soon"}
+                                    >
+                                        <Link href={item.href} className={cn(item.badge === "Soon" && "pointer-events-none opacity-60")}>
+                                            <div className="flex items-center gap-3">
+                                                <item.icon className={cn(
+                                                    "h-4 w-4 transition-colors",
+                                                    active ? "text-primary" : "group-hover:text-primary"
+                                                )} />
+                                                {item.title}
+                                            </div>
+                                            {item.badge && (
+                                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-bold border-primary/20 text-muted-foreground bg-primary/5">
+                                                    {item.badge}
+                                                </Badge>
+                                            )}
+                                        </Link>
+                                    </Button>
+                                </div>
                             );
                         })}
                     </div>
@@ -128,7 +167,7 @@ export function AppSidebar({ className }: SidebarProps) {
                                 {user.fullName || user.firstName}
                             </span>
                             <span className="text-xs text-muted-foreground truncate">
-                                Free Plan
+                                {isAdmin ? "Admin Account" : "Free Plan"}
                             </span>
                         </div>
                     </div>

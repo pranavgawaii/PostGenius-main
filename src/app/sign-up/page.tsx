@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { Glow } from "@/components/ui/glow";
 import { ChevronLeft } from "lucide-react";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 export default function SignUpPage() {
     const { isLoaded, signUp, setActive } = useSignUp();
@@ -19,6 +20,8 @@ export default function SignUpPage() {
     const [code, setCode] = React.useState("");
     const [error, setError] = React.useState("");
     const [loading, setLoading] = React.useState(false);
+    const [captchaToken, setCaptchaToken] = React.useState<string | null>(null);
+    const captchaRef = React.useRef<HCaptcha>(null);
 
     React.useEffect(() => {
         if (isLoaded && isSignedIn) {
@@ -29,6 +32,12 @@ export default function SignUpPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!isLoaded) return;
+
+        if (!captchaToken) {
+            setError("Please complete the captcha verification");
+            return;
+        }
+
         setLoading(true);
         setError("");
 
@@ -159,7 +168,20 @@ export default function SignUpPage() {
                                             {error}
                                         </div>
                                     )}
-                                    <Button variant="default" className="w-full" disabled={loading}>
+
+                                    {/* hCaptcha Widget */}
+                                    {!loading && !verifying && (
+                                        <div className="flex justify-center py-2">
+                                            <HCaptcha
+                                                sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001"}
+                                                onVerify={(token) => setCaptchaToken(token)}
+                                                ref={captchaRef}
+                                                theme="dark"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <Button variant="default" className="w-full" disabled={loading || (!verifying && !captchaToken)}>
                                         {loading ? "Creating account..." : "Sign Up"}
                                     </Button>
                                 </div>
@@ -227,6 +249,6 @@ export default function SignUpPage() {
                     </Link>
                 </p>
             </div>
-        </div>
+        </div >
     );
 }

@@ -44,9 +44,13 @@ export default function LibraryPage() {
             // Fetch all generations, no filter
             const res = await fetch(`/api/user/generations?limit=${limit}&offset=${page * limit}`);
             if (res.ok) {
-                const data = await res.json();
-                setGenerations(data);
-                console.log('Fetched library items:', data);
+                const result = await res.json();
+                if (result.success && Array.isArray(result.data)) {
+                    setGenerations(result.data);
+                } else {
+                    setGenerations([]);
+                }
+                console.log('Fetched library items:', result);
             }
         } catch (error) {
             console.error("Failed to fetch library", error);
@@ -61,6 +65,7 @@ export default function LibraryPage() {
     }, [page]);
 
     const filteredGenerations = useMemo(() => {
+        if (!Array.isArray(generations)) return [];
         return generations.filter(gen =>
             (gen.title?.toLowerCase() || "").includes(search.toLowerCase()) ||
             gen.url.toLowerCase().includes(search.toLowerCase())

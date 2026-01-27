@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/lib/supabase";
-
-// ... imports
+import { globalRateLimiter, getIP } from "@/lib/ratelimit";
+import { handleApiError, successResponse } from "@/lib/errors";
 
 export async function GET(req: Request) {
     try {
-        const { userId: clerkUserId } = await auth();
-        if (!clerkUserId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        // 1. GLOBAL RATE LIMITING
+        if (globalRateLimiter) {
+            const ip = getIP(req);
+            const { success } = await globalRateLimiter.limit(ip);
+            if (!success) return NextResponse.json({ success: false, error: "Too many requests" }, { status: 429 });
         }
 
+        const { userId: clerkUserId } = await auth();
+        if (!clerkUserId) throw new Error("Unauthorized");
+
         const { searchParams } = new URL(req.url);
-        const limit = parseInt(searchParams.get("limit") || "10");
+        const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50); // Hard limit to 50
         const offset = parseInt(searchParams.get("offset") || "0");
 
         // Get user id first
@@ -22,9 +27,7 @@ export async function GET(req: Request) {
             .eq("clerk_user_id", clerkUserId)
             .single();
 
-        if (!user) {
-            return NextResponse.json([]);
-        }
+        if (!user) return successResponse([]);
 
         const { data, error } = await supabase
             .from("generations")
@@ -42,8 +45,8 @@ export async function GET(req: Request) {
             title: item.blog_title || "Untitled",
             created_at: item.created_at,
             user_id: item.user_id,
-            workflow: item.workflow || 'social_media', // Return workflow
-            output: item.output, // Return JSONB output
+            workflow: item.workflow || 'social_media',
+            output: item.output,
             captions: {
                 instagram: item.instagram_caption,
                 twitter: item.twitter_caption,
@@ -53,7 +56,6 @@ export async function GET(req: Request) {
                 blog: item.blog_caption
             },
             metadata: {
-                // ... legacy metadata
                 total_captions: [
                     item.instagram_caption,
                     item.twitter_caption,
@@ -65,9 +67,8 @@ export async function GET(req: Request) {
             }
         }));
 
-        return NextResponse.json(formattedData);
+        return successResponse(formattedData);
     } catch (error: any) {
-        console.error("Generations fetch error:", error.message);
-        return NextResponse.json({ error: "Failed to fetch generations" }, { status: 500 });
+        return handleApiError(error);
     }
 }
