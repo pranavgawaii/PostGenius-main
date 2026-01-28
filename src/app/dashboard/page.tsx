@@ -136,12 +136,20 @@ export default function DashboardPage() {
             }
 
             const responseJson = await res.json();
+            console.log('📦 Full API Response:', responseJson);
+
             const payload = responseJson.data;
+            console.log('📦 Payload:', payload);
+            console.log('📦 Payload.output:', payload?.output);
 
             // Handle output (Backend consistently sends 'output')
-            setGeneratedData(payload.output);
+            const outputData = payload?.output || payload || responseJson.output;
+            console.log('📦 Final outputData:', outputData);
+
+            setGeneratedData(outputData);
 
             setShowResults(true);
+            console.log('✅ showResults set to true, generatedData:', outputData);
 
             // Refetch generations to update history
             const resUpdated = await fetch("/api/user/generations");
