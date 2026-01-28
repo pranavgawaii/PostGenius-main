@@ -271,13 +271,17 @@ export async function POST(req: Request) {
             } else {
                 generationId = genData?.id || null;
 
-                // 10. CREDIT DEDUCTION (Only if save succeeded)
+                // 10. CREDIT DEDUCTION & ACTIVITY LOGGING
+                const updatePayload: any = {
+                    last_activity: new Date().toISOString()
+                };
+
+                // Only deduct credits if free plan and not admin
                 if (sbUser.plan === 'free' && !sbUser.is_admin) {
-                    await supabase.from('users').update({
-                        credits_remaining: sbUser.credits_remaining - 1,
-                        last_activity: new Date().toISOString()
-                    }).eq('id', userId);
+                    updatePayload.credits_remaining = sbUser.credits_remaining - 1;
                 }
+
+                await supabase.from('users').update(updatePayload).eq('id', userId);
             }
         } catch (dbError) {
             console.error("Critical Database Error during save (Ignoring to show output):", dbError);

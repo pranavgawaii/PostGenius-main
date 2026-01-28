@@ -78,7 +78,7 @@ export async function GET(req: Request) {
         const { data: usersList } = await supabase
             .from("users")
             .select(`id, email, plan, credits_remaining, last_activity, created_at`)
-            .order("created_at", { ascending: false });
+            .order("last_activity", { ascending: false, nullsFirst: false });
 
         const { data: genCounts } = await supabase.from("generations").select("user_id");
         const countMap: Record<string, number> = {};
