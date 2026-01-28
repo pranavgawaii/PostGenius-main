@@ -49,7 +49,16 @@ export default function AdminDashboardPage() {
         }
 
         checkAdminAndFetchData();
-    }, [user, isLoaded, router]);
+
+        // Auto-refresh every 30 seconds for live data
+        const refreshInterval = setInterval(() => {
+            if (isAdmin) {
+                checkAdminAndFetchData();
+            }
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(refreshInterval);
+    }, [user, isLoaded, router, isAdmin]);
 
     if (!isLoaded || loading) {
         return (
