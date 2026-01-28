@@ -135,14 +135,11 @@ export default function DashboardPage() {
                 throw new Error(errData.error || "Generation failed");
             }
 
-            const data = await res.json();
+            const responseJson = await res.json();
+            const payload = responseJson.data;
 
-            // Handle different output structures
-            if (selectedWorkflow === 'social_media') {
-                setGeneratedData(data.captions); // Existing format
-            } else {
-                setGeneratedData(data.output);   // New format
-            }
+            // Handle output (Backend consistently sends 'output')
+            setGeneratedData(payload.output);
 
             setShowResults(true);
 

@@ -66,6 +66,18 @@ export default function SignInPage() {
             });
         } catch (err: any) {
             console.error("OAuth error:", err);
+
+            // CHECK FOR "External Account Not Found"
+            // This error happens when a new user tries to Sign In instead of Sign Up
+            const errorCode = err.errors?.[0]?.code;
+            if (errorCode === "external_account_not_found" || err.message?.includes("not found")) {
+                setError("Account not found. Redirecting to Sign Up...");
+                setTimeout(() => {
+                    router.push("/sign-up");
+                }, 1500);
+                return;
+            }
+
             const errorMessage = err.errors?.[0]?.longMessage || err.message || "An error occurred during social sign in";
             setError(errorMessage);
         }

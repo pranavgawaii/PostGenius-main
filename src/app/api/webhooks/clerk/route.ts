@@ -4,13 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { handleApiError } from '@/lib/errors';
 
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '1mb'
-        }
-    }
-};
 
 // POST handler for Clerk webhooks
 export async function POST(req: Request) {

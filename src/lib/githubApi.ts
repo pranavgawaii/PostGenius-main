@@ -32,18 +32,46 @@ export async function fetchGitHubRepo(repoUrl: string): Promise<GitHubRepoData> 
     };
 
     try {
-        // 2. API Calls - Repo Data
-        const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}`, { headers });
+        // 2. API Calls - Repo Data (with retry logic for Node.js timeout issues)
+        let repoResponse: Response | null = null;
+        let data: any = null;
+        const maxRetries = 3;
 
-        if (repoResponse.status === 404) {
-            throw new Error("Repository not found. Make sure the repository is public.");
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`GitHub API attempt ${attempt}/${maxRetries}...`);
+                repoResponse = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}`, {
+                    headers,
+                    signal: AbortSignal.timeout(30000) // 30s timeout
+                });
+
+                if (repoResponse.status === 404) {
+                    throw new Error("Repository not found. Make sure the repository is public.");
+                }
+
+                if (!repoResponse.ok) {
+                    throw new Error(`GitHub API Error: ${repoResponse.statusText}`);
+                }
+
+                data = await repoResponse.json();
+                console.log(`✓ GitHub API succeeded on attempt ${attempt}`);
+                break; // Success
+            } catch (err: any) {
+                if (err.message.includes("Repository not found")) {
+                    throw err; // Don't retry 404s
+                }
+
+                console.warn(`GitHub API attempt ${attempt} failed:`, err.message);
+
+                if (attempt < maxRetries) {
+                    const backoffMs = Math.pow(2, attempt) * 1000;
+                    console.log(`Retrying in ${backoffMs}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, backoffMs));
+                } else {
+                    throw new Error(`GitHub API failed after ${maxRetries} attempts: ${err.message}`);
+                }
+            }
         }
-
-        if (!repoResponse.ok) {
-            throw new Error(`GitHub API Error: ${repoResponse.statusText}`);
-        }
-
-        const data = await repoResponse.json();
 
         // 3. API Calls - README
         let readme = "No README found";

@@ -19,15 +19,6 @@ import { GenerationRequestSchema, validateRequest } from "@/lib/validators";
 import { globalRateLimiter, generationRateLimiter, getIP } from "@/lib/ratelimit";
 import { handleApiError, successResponse } from "@/lib/errors";
 
-// --- Configuration ---
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '1mb'
-        }
-    }
-};
-
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
@@ -55,8 +46,19 @@ export async function POST(req: Request) {
             }
         }
 
+        // DEBUG: Check Environment
+        console.log("Clerk Secret Key loaded:", process.env.CLERK_SECRET_KEY ? "YES" : "NO");
+
         // 2. AUTHENTICATION
-        const { userId: authId } = await auth();
+        let authId: string | null = null;
+        try {
+            const authResponse = await auth();
+            authId = authResponse.userId;
+        } catch (authErr: any) {
+            console.error("Clerk auth() failed:", authErr);
+            throw new Error(`Authentication service unreachable: ${authErr.message}`);
+        }
+
         if (!authId) throw new Error("Unauthorized");
         clerkUserId = authId;
 
@@ -143,20 +145,47 @@ export async function POST(req: Request) {
                 content = cacheRow.content;
                 scrapedContentString = content;
             } else {
-                // Scraping via Firecrawl
-                const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
-                    },
-                    body: JSON.stringify({ url: blogUrl, formats: ["markdown"] }),
-                    signal: AbortSignal.timeout(30000),
-                });
+                // Scraping via Firecrawl with Retry Logic (Node.js fetch timeout workaround)
+                let scrapeData: any = null;
+                let lastError: Error | null = null;
+                const maxRetries = 3;
 
-                if (!scrapeResponse.ok) throw new Error("Scraping service unreachable");
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    try {
+                        console.log(`Firecrawl attempt ${attempt}/${maxRetries}...`);
+                        const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+                            },
+                            body: JSON.stringify({ url: blogUrl, formats: ["markdown"] }),
+                            signal: AbortSignal.timeout(60000), // Increased to 60s
+                        });
 
-                const scrapeData = await scrapeResponse.json();
+                        if (!scrapeResponse.ok) {
+                            throw new Error(`Firecrawl returned ${scrapeResponse.status}`);
+                        }
+
+                        scrapeData = await scrapeResponse.json();
+                        console.log(`✓ Firecrawl succeeded on attempt ${attempt}`);
+                        break; // Success, exit retry loop
+                    } catch (err: any) {
+                        lastError = err;
+                        console.warn(`Firecrawl attempt ${attempt} failed:`, err.message);
+
+                        if (attempt < maxRetries) {
+                            const backoffMs = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+                            console.log(`Retrying in ${backoffMs}ms...`);
+                            await new Promise(resolve => setTimeout(resolve, backoffMs));
+                        }
+                    }
+                }
+
+                if (!scrapeData) {
+                    throw new Error(`Firecrawl failed after ${maxRetries} attempts: ${lastError?.message}`);
+                }
+
                 content = scrapeData.data?.markdown || scrapeData.data?.content || "";
                 scrapedContentString = content;
 
@@ -179,8 +208,26 @@ export async function POST(req: Request) {
                     workflow === 'linkedin' ? getLinkedInPostPrompt(content as string, { name: user?.fullName || "User" }) :
                         getSocialMediaCaptionsPrompt(content as string, ['instagram', 'linkedin', 'twitter']);
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(prompt);
+        console.log("--- GENERATION START ---");
+        console.log("API Key loaded:", process.env.GEMINI_API_KEY ? `YES (Starts with ${process.env.GEMINI_API_KEY.substring(0, 4)}...)` : "NO");
+        console.log("Workflow:", workflow);
+
+        // UPDATED: Optimized Fallback Chain
+        let model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        let result;
+        try {
+            result = await model.generateContent(prompt);
+        } catch (error: any) {
+            console.warn("Gemini 2.5 Flash failed (503/429?), trying fallback to gemini-2.0-flash...", error.message);
+            model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            try {
+                result = await model.generateContent(prompt);
+            } catch (fallbackError: any) {
+                console.warn("Gemini 2.0 Flash failed, trying gemini-1.5-pro...", fallbackError.message);
+                model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Stable legacy fallback
+                result = await model.generateContent(prompt);
+            }
+        }
         const rawOutput = (await result.response).text();
         const tokenUsage = (await result.response).usageMetadata?.totalTokenCount || 0;
 
@@ -195,30 +242,45 @@ export async function POST(req: Request) {
         }
 
         const geminiCost = tokenUsage * 0.0000001;
-        const { data: genData, error: genError } = await supabase
-            .from("generations")
-            .insert([{
-                user_id: userId,
-                blog_url: blogUrl,
-                blog_title: (scrapedContentString.split('\n')[0] || "Generation").substring(0, 100),
-                workflow: workflow,
-                output: parsedOutput,
-                credits_used: 1,
-                firecrawl_cost_usd: workflowMeta.requiresFirecrawl ? 0.01 : 0,
-                gemini_cost_usd: geminiCost
-            }])
-            .select("id")
-            .single();
 
-        if (genError) console.error("Database save failed:", genError.message);
-        generationId = genData?.id || null;
+        // FAIL-SAFE DB SAVE: Even if DB fails, allow user to see result
+        try {
+            const { data: genData, error: genError } = await supabase
+                .from("generations")
+                .insert([{
+                    user_id: userId,
+                    blog_url: blogUrl,
+                    blog_title: (scrapedContentString.split('\n')[0] || "Generation").substring(0, 100),
+                    workflow: workflow,
+                    output: parsedOutput,
+                    instagram_caption: parsedOutput?.instagram?.text || "",
+                    linkedin_caption: parsedOutput?.linkedin?.text || "",
+                    twitter_caption: parsedOutput?.twitter?.text || "",
+                    facebook_caption: parsedOutput?.facebook?.text || "",
+                    Newsletter_caption: "",
+                    Blog_caption: "",
+                    credits_used: 1,
+                    firecrawl_cost_usd: workflowMeta.requiresFirecrawl ? 0.01 : 0,
+                    gemini_cost_usd: geminiCost
+                }])
+                .select("id")
+                .single();
 
-        // 10. CREDIT DEDUCTION
-        if (sbUser.plan === 'free' && !sbUser.is_admin) {
-            await supabase.from('users').update({
-                credits_remaining: sbUser.credits_remaining - 1,
-                last_activity: new Date().toISOString()
-            }).eq('id', userId);
+            if (genError) {
+                console.error("Database save failed (Constraints?):", genError.message);
+            } else {
+                generationId = genData?.id || null;
+
+                // 10. CREDIT DEDUCTION (Only if save succeeded)
+                if (sbUser.plan === 'free' && !sbUser.is_admin) {
+                    await supabase.from('users').update({
+                        credits_remaining: sbUser.credits_remaining - 1,
+                        last_activity: new Date().toISOString()
+                    }).eq('id', userId);
+                }
+            }
+        } catch (dbError) {
+            console.error("Critical Database Error during save (Ignoring to show output):", dbError);
         }
 
         return successResponse({
