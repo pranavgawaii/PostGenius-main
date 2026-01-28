@@ -5,6 +5,8 @@ import { globalRateLimiter, getIP } from "@/lib/ratelimit";
 import { handleApiError, successResponse } from "@/lib/errors";
 import { AdminStatsQuerySchema, validateRequest } from "@/lib/validators";
 
+export const dynamic = "force-dynamic"; // Ensure API is never cached
+
 export async function GET(req: Request) {
     try {
         // 1. GLOBAL RATE LIMITING (IP Based)

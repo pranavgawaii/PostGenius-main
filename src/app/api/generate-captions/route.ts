@@ -281,7 +281,15 @@ export async function POST(req: Request) {
                     updatePayload.credits_remaining = sbUser.credits_remaining - 1;
                 }
 
-                await supabase.from('users').update(updatePayload).eq('id', userId);
+                console.log(`Updating user ${userId} with payload:`, updatePayload); // DEBUG LOG
+
+                const { error: updateError } = await supabase.from('users').update(updatePayload).eq('id', userId);
+
+                if (updateError) {
+                    console.error("❌ Failed to update last_activity:", updateError.message);
+                } else {
+                    console.log("✅ Successfully updated last_activity for user", userId);
+                }
             }
         } catch (dbError) {
             console.error("Critical Database Error during save (Ignoring to show output):", dbError);

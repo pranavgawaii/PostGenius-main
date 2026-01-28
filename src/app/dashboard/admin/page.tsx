@@ -24,7 +24,7 @@ export default function AdminDashboardPage() {
             if (!isLoaded || !user) return;
 
             try {
-                const response = await fetch('/api/admin/stats');
+                const response = await fetch('/api/admin/stats', { cache: 'no-store' });
 
                 if (response.status === 403) {
                     setIsAdmin(false);
