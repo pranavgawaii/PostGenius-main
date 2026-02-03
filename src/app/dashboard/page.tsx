@@ -192,8 +192,8 @@ export default function DashboardPage() {
 
     return (
         <div className={cn(
-            "space-y-6 pb-24 max-w-5xl mx-auto px-4",
-            showUpgradeBanner ? "pt-4" : "pt-12"
+            "space-y-2 pb-24 max-w-5xl mx-auto px-4",
+            showUpgradeBanner ? "pt-0" : "pt-2"
         )}>
 
             {/* Zero Credits Banner */}
@@ -210,7 +210,7 @@ export default function DashboardPage() {
             </AnimatePresence>
 
             {/* Hero Section */}
-            <div className="text-center space-y-4 py-2">
+            <div className="text-center space-y-4 pt-0 pb-2">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
