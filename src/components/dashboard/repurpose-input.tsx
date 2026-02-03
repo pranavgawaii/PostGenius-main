@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, ArrowRight, Link as LinkIcon, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 
@@ -85,26 +85,42 @@ export function RepurposeInput({
                 transition={{ delay: 0.1 }}
                 className="relative"
             >
-                <form onSubmit={handleSubmit} className="relative flex items-center">
-                    <div className="absolute left-6 text-muted-foreground group-focus-within:text-primary transition-colors">
-                        <LinkIcon className="h-5 w-5" />
+                {/* Generating Glow Effect (Subtle) */}
+                <AnimatePresence>
+                    {isGenerating && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 rounded-2xl blur-md z-0"
+                        />
+                    )}
+                </AnimatePresence>
+
+                <form onSubmit={handleSubmit} className="relative flex items-center z-10">
+                    <div className={cn(
+                        "absolute left-6 text-muted-foreground group-focus-within:text-primary transition-colors",
+                        isGenerating && "text-primary/70"
+                    )}>
+                        {isGenerating ? <Sparkles className="h-5 w-5" /> : <LinkIcon className="h-5 w-5" />}
                     </div>
 
                     <Input
                         ref={inputRef}
                         type="url"
-                        placeholder="Paste your link here..."
+                        placeholder={isGenerating ? "Analyzing link and generating content..." : "Paste your link here..."}
                         className={cn(
                             "h-14 w-full rounded-2xl border-2 border-border bg-background/50 pl-12 pr-24 text-base shadow-sm transition-all",
                             "hover:border-primary/50 hover:bg-background/80",
                             "focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/10",
                             error && "border-red-500/50 focus:border-red-500 focus:ring-red-500/10",
-                            isLimitReached && "opacity-60 cursor-not-allowed bg-muted"
+                            isLimitReached && "opacity-60 cursor-not-allowed bg-muted",
+                            isGenerating && "opacity-70 cursor-wait border-primary/30"
                         )}
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         required
-                        disabled={isLimitReached}
+                        disabled={isLimitReached || isGenerating}
                     />
 
                     <div className="absolute right-1.5">
@@ -115,7 +131,8 @@ export function RepurposeInput({
                                 "h-11 w-14 rounded-xl transition-all duration-300",
                                 isLimitReached
                                     ? "bg-muted text-muted-foreground"
-                                    : "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 shadow-md"
+                                    : "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 shadow-md",
+                                isGenerating && "bg-primary/80 animate-pulse"
                             )}
                             disabled={isGenerating || isLimitReached}
                         >

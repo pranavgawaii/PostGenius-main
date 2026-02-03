@@ -51,52 +51,70 @@ export function GenerationProgress({ currentStep, isGenerating, workflow }: Gene
     if (!isGenerating) return null;
 
     const steps = (workflow && workflowSteps[workflow]) ? workflowSteps[workflow] : defaultSteps;
-    const currentPercentage = steps[currentStep - 1]?.percentage || 0;
+    const currentStepIndex = Math.min(currentStep - 1, steps.length - 1);
+    const currentPercentage = steps[currentStepIndex]?.percentage || 0;
+    const currentStepName = steps[currentStepIndex]?.name || "Processing...";
 
     return (
-        <div className="w-full max-w-xl mx-auto space-y-4 py-8 animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="bg-muted/50 rounded-full h-2 overflow-hidden border border-border/50">
-                <motion.div
-                    className="h-full bg-primary"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${currentPercentage}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                />
-            </div>
+        <div className="w-full max-w-lg mx-auto py-10 animate-in fade-in duration-1000">
+            <div className="space-y-6">
+                {/* Minimal Progress Line */}
+                <div className="relative">
+                    <div className="h-[2px] w-full bg-muted/20 rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full bg-primary relative"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${currentPercentage}%` }}
+                            transition={{ duration: 1, ease: "easeInOut" }}
+                        >
+                            <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                animate={{ x: ["-100%", "100%"] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            />
+                        </motion.div>
+                    </div>
 
-            <div className="grid grid-cols-4 gap-2">
-                {steps.map((step, idx) => {
-                    const isCompleted = idx + 1 < currentStep;
-                    const isActive = idx + 1 === currentStep;
-
-                    return (
-                        <div key={idx} className="flex flex-col items-center gap-2 text-center">
-                            <div className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center text-[10px] transition-colors",
-                                isCompleted ? "bg-primary text-primary-foreground" :
-                                    isActive ? "bg-primary/20 text-primary animate-pulse" :
-                                        "bg-muted text-muted-foreground"
-                            )}>
-                                {isCompleted ? (
-                                    <Check className="w-3 h-3 stroke-[3]" />
-                                ) : (
-                                    <span>{idx + 1}</span>
+                    {/* Discrete Step Indicators */}
+                    <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full flex justify-between px-0.5 pointer-events-none">
+                        {steps.map((_, idx) => (
+                            <div
+                                key={idx}
+                                className={cn(
+                                    "w-1 h-1 rounded-full transition-colors duration-500",
+                                    idx < currentStep ? "bg-primary" : "bg-muted-foreground/20"
                                 )}
-                            </div>
-                            <span className={cn(
-                                "text-[10px] font-medium leading-tight max-w-[80px]",
-                                isActive ? "text-foreground" : "text-muted-foreground"
-                            )}>
-                                {step.name}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
+                            />
+                        ))}
+                    </div>
+                </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground font-medium">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                <span>Usually takes 10-15 seconds</span>
+                {/* Elegant Step Name & Message */}
+                <div className="flex flex-col items-center gap-2">
+                    <motion.div
+                        key={currentStepName}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="flex items-center gap-3"
+                    >
+                        <div className="relative flex items-center justify-center">
+                            <Loader2 className="w-3 h-3 animate-spin text-primary/70" />
+                            <div className="absolute inset-0 blur-[4px] bg-primary/20 rounded-full animate-pulse" />
+                        </div>
+                        <span className="text-[13px] font-medium tracking-tight text-foreground/80 lowercase">
+                            {currentStepName}
+                        </span>
+                    </motion.div>
+
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.5 }}
+                        className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground"
+                    >
+                        step {currentStep} of {steps.length}
+                    </motion.p>
+                </div>
             </div>
         </div>
     );

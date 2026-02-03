@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { RepurposeInput } from "@/components/dashboard/repurpose-input";
 import { PlatformPreview } from "@/components/dashboard/platform-preview";
@@ -40,6 +40,20 @@ export default function DashboardPage() {
     // Credit Warning State
     const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
     const [userPlan, setUserPlan] = useState<string>('free');
+    const resultsRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to results when they appear
+    useEffect(() => {
+        if (showResults && resultsRef.current) {
+            // Delay slightly to allow the results to render and animations to start
+            setTimeout(() => {
+                resultsRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300); // Increased delay for stability
+        }
+    }, [showResults]);
 
     // Fetch generations on mount
     useEffect(() => {
@@ -346,25 +360,27 @@ export default function DashboardPage() {
 
             {/* STEP 3: RESULTS DISPLAY (Conditional) */}
             {showResults && generatedData && (
-                <ScrollReveal delay={0.1}>
-                    <div className="mb-12">
-                        {selectedWorkflow === 'social_media' && (
-                            <PlatformPreview visible={true} data={generatedData} />
-                        )}
-                        {selectedWorkflow === 'github_readme' && (
-                            <GitHubReadmeOutput readme={generatedData} />
-                        )}
-                        {selectedWorkflow === 'resume' && (
-                            <ResumeBulletsOutput bullets={generatedData} />
-                        )}
-                        {selectedWorkflow === 'notes' && (
-                            <StudyNotesOutput notes={generatedData} />
-                        )}
-                        {selectedWorkflow === 'linkedin' && (
-                            <LinkedInPostOutput post={generatedData} />
-                        )}
-                    </div>
-                </ScrollReveal>
+                <div ref={resultsRef} className="scroll-mt-48">
+                    <ScrollReveal delay={0.1}>
+                        <div className="mb-12">
+                            {selectedWorkflow === 'social_media' && (
+                                <PlatformPreview visible={true} data={generatedData} />
+                            )}
+                            {selectedWorkflow === 'github_readme' && (
+                                <GitHubReadmeOutput readme={generatedData} />
+                            )}
+                            {selectedWorkflow === 'resume' && (
+                                <ResumeBulletsOutput bullets={generatedData} />
+                            )}
+                            {selectedWorkflow === 'notes' && (
+                                <StudyNotesOutput notes={generatedData} />
+                            )}
+                            {selectedWorkflow === 'linkedin' && (
+                                <LinkedInPostOutput post={generatedData} />
+                            )}
+                        </div>
+                    </ScrollReveal>
+                </div>
             )}
         </div>
     );
