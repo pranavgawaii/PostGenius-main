@@ -132,12 +132,12 @@ export default function SupportPage() {
                         <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-3">Resources</h3>
                         <ul className="space-y-2">
                             <li>
-                                <a href="#" className="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors">
+                                <a href="/dashboard/support/docs" className="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors">
                                     <FileText className="w-3.5 h-3.5" /> Documentation
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors">
+                                <a href="/dashboard/support/api" className="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors">
                                     <FileText className="w-3.5 h-3.5" /> API Reference
                                 </a>
                             </li>
