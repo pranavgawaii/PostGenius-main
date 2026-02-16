@@ -57,8 +57,8 @@ This project is built with the modern "T3-like" stack for maximum performance an
 ## 💻 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm
+- Node.js 
+- npm 
 
 ### Installation
 
