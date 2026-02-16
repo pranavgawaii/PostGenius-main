@@ -40,6 +40,7 @@ export default function DashboardPage() {
     // Credit Warning State
     const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
     const [userPlan, setUserPlan] = useState<string>('free');
+    const [loadingUser, setLoadingUser] = useState(true);
     const resultsRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to results when they appear
@@ -96,14 +97,24 @@ export default function DashboardPage() {
                 }
             } catch (e) {
                 console.error("Failed to fetch user data for dashboard", e);
+            } finally {
+                setLoadingUser(false);
             }
         };
         fetchUserData();
 
-        // Listen for refresh events (same as header)
         const handleRefresh = () => fetchUserData();
         window.addEventListener("refresh-user-data", handleRefresh);
         return () => window.removeEventListener("refresh-user-data", handleRefresh);
+    }, []);
+
+    // Failsafe: Ensure loader disappears after 10s no matter what
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoadingGenerations(false);
+            setLoadingUser(false);
+        }, 10000);
+        return () => clearTimeout(timer);
     }, []);
 
     const handleGenerate = useCallback(async (targetUrl: string) => {
@@ -199,8 +210,8 @@ export default function DashboardPage() {
     const showUpgradeBanner = creditsRemaining === 0 && userPlan !== 'unlimited' && userPlan !== 'pro';
 
     // --- Splash Screen Loader ---
-    // Show loader while initial critical data (generations or credits) is fetching
-    if (loadingGenerations || creditsRemaining === null) {
+    // Show loader while initial critical data (generations or user data) is fetching
+    if (loadingGenerations || loadingUser) {
         return <PageLoader />;
     }
 
