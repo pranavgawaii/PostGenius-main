@@ -50,15 +50,15 @@ This project is built with the modern "T3-like" stack for maximum performance an
 
 - **Frontend**: Next.js 14 (App Router), Tailwind CSS, Framer Motion, Shadcn/UI
 - **Backend**: Next.js Server Actions, Supabase (PostgreSQL)
-- **Auth**: Clerk
+- **Auth**: Clerk auth
 - **AI**: Google Gemini API
 - **Utilities**: Lucide React, Sonner, Zod, Recharts
 
 ## 💻 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm
+- Node.js 
+- npm 
 
 ### Installation
 
