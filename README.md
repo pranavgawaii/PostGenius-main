@@ -86,7 +86,7 @@ This project is built with the modern "T3-like" stack for maximum performance an
 **Pranav Gawaii**
 
 - **GitHub**: [@pranavgawaii](https://github.com/pranavgawaii)
-- **Role**: Lead Developer & Architect
+
 
 ---
 
